@@ -1,0 +1,35 @@
+How to Run the Automation Scripts
+Prerequisites
+Install Node.js (v16+)
+
+(Optional) Install Git
+
+Setup
+Get the repo
+
+Clone: git clone https://github.com/yourusername/your-repo-name.git
+
+Or download ZIP and extract
+
+cd your-repo-name
+
+Install dependencies
+
+bash
+
+npm install
+npx playwright install
+Configure environment variables
+Create .env if needed, based on .env.example
+
+Run tests
+
+npx playwright test --reporter=list --headed
+Troubleshooting
+Update Node.js & npm
+
+Run npm install again if errors occur
+
+Run npx playwright install if browsers are missing
+
+Increase timeouts for slow tests
