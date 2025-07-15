@@ -15,7 +15,7 @@ module.exports = async function createShipment(page) {
 
   // Fill shipment details
   const shipmentData = {
-    '#shipmentId': 'TEST-001',
+    '#shipmentId': 'TEST-002',
     '#shipper': 'TEST_SHIPPER',
     '#consignee': 'TEST_CONSIGNEE',
     '#blNumber': 'BL123456',

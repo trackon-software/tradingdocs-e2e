@@ -1,12 +1,42 @@
 // complyShipment.js
 const { expect } = require('@playwright/test');
 
+// Helper function to wait for file status without page refresh
+async function waitForFileStatus(page, expectedStatus = 'Splitted', maxWaitTime = 90000) {
+  const statusSelector = 'td[data-field="status"] .status-badge span.text-white';
+  const startTime = Date.now();
+  
+  console.log(`⏳ Waiting for file status to change to "${expectedStatus}"...`);
+  
+  while (Date.now() - startTime < maxWaitTime) {
+    try {
+      // Check if status element exists and get its text
+      const statusElement = await page.locator(statusSelector).first();
+      const statusText = await statusElement.textContent();
+      
+      if (statusText && statusText.trim() === expectedStatus) {
+        console.log(`✅ File status changed to "${expectedStatus}"`);
+        return true;
+      }
+      
+      console.log(`⏳ Current status: "${statusText?.trim() || 'unknown'}", waiting...`);
+      await page.waitForTimeout(5000); // Check every 5 seconds
+      
+    } catch (error) {
+      console.log('⏳ Status element not found yet, continuing to wait...');
+      await page.waitForTimeout(5000);
+    }
+  }
+  
+  throw new Error(`Timeout: File status did not change to "${expectedStatus}" within ${maxWaitTime}ms`);
+}
+
 async function complyShipment(page, rulesetName = 'Demo Ruleset') {
   const popoverSelector = '#driver-popover-content';
   const closeBtnSelector = `${popoverSelector} .driver-popover-close-btn`;
 
   // Step 0: Go to shipment page and let UI settle
-  await page.goto('https://demo.tradingdocs.ai/shipment/TEST-001');
+  await page.goto('https://demo.tradingdocs.ai/shipment/TEST-002');
   console.log('🚀 Navigated to shipment page');
   await page.waitForTimeout(2000); // Let animations or popovers start
 
@@ -50,6 +80,10 @@ async function complyShipment(page, rulesetName = 'Demo Ruleset') {
   await page.waitForTimeout(800); // Let selection register in the system
   await page.click('.e-dialog .e-footer-content button:has-text("Select")');
   console.log('✅ Clicked "Select" to confirm ruleset');
+
+  // Step 8: Wait for file processing to complete (NEW)
+  await waitForFileStatus(page, 'Splitted', 90000); // Wait up to 90 seconds
+  
 }
 
-module.exports = { complyShipment };
+module.exports = { complyShipment, waitForFileStatus };

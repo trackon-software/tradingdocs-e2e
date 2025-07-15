@@ -1,7 +1,7 @@
 const { expect } = require('@playwright/test');
 
 module.exports = async function uploadFile(page) {
-  await page.goto('https://demo.tradingdocs.ai/shipment/TEST-001');
+  await page.goto('https://demo.tradingdocs.ai/shipment/TEST-002');
 
   // Close popover if present (reuse previous popover handling)
   try {
