@@ -4,10 +4,9 @@ Install Node.js (v16+)
 
 (Optional) Install Git
 
-Setup
 Get the repo
 
-Clone: git clone https://github.com/yourusername/your-repo-name.git
+Clone: git clone https://github.com/trackon-software/tradingdocs-e2e
 
 Or download ZIP and extract
 
@@ -15,21 +14,18 @@ cd your-repo-name
 
 Install dependencies
 
-bash
+bash (I ran these on vscode terminal)
 
 npm install
 npx playwright install
-Configure environment variables
-Create .env if needed, based on .env.example
 
-Run tests
+Configure environment variables
+Create .env because login info is on an env file 
+
+How To Run tests
 
 npx playwright test --reporter=list --headed
-Troubleshooting
-Update Node.js & npm
+this command executed from terminal returns the console logs and runs the website so you can clearly see the steps taken while testing. --reporter=list returns the logs and --headed runs the website.
 
-Run npm install again if errors occur
 
-Run npx playwright install if browsers are missing
-
-Increase timeouts for slow tests
+For more info: https://playwright.dev/docs/intro
