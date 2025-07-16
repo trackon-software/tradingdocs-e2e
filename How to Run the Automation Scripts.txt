@@ -29,3 +29,5 @@ this command executed from terminal returns the console logs and runs the websit
 
 
 For more info: https://playwright.dev/docs/intro
+
+Note: create a ".env" file do not name it anything else. just ".env" and enter your login info after creating 2 fields those being USER_EMAIL= and USER_PASSWORD= enter your username and password after the "="
