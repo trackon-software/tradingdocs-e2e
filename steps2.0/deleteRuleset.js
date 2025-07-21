@@ -1,3 +1,4 @@
+const navigateAndWait = require('../utils/navigateAndWait');
 const config = require('./config2.0');
 
 module.exports = async function deleteRuleset(page) {
@@ -6,8 +7,7 @@ module.exports = async function deleteRuleset(page) {
 
   try {
     console.log('🚀 Navigating to Rulesets page');
-    await page.goto(cfg.baseUrl + cfg.rulesetsPath, { timeout: timeouts.navigation });
-    await page.waitForSelector(selectors.tableRow, { timeout: timeouts.selector });
+    await navigateAndWait(page, 'ruleset');
 
     console.log(`🔍 Searching for ruleset named "${rulesetData.rulesetName}"`);
     const row = await page.locator(selectors.tableRow, { hasText: rulesetData.rulesetName }).first();

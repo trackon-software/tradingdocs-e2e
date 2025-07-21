@@ -1,3 +1,4 @@
+const navigateAndWait = require('../utils/navigateAndWait');
 const config = require('./config2.0');
 
 module.exports = async function deleteExtractor(page, extractorName = '') {
@@ -11,8 +12,7 @@ module.exports = async function deleteExtractor(page, extractorName = '') {
 
   try {
     console.log('🚀 Navigating to Extractors page...');
-    await page.goto(cfg.baseUrl);
-    await page.waitForSelector(selectors.pageTitle, { timeout: timeouts.navigation });
+    await navigateAndWait(page, 'extractors');
     await page.waitForTimeout(1000);
 
     console.log(`🔍 Searching for extractor row with name: "${extractorName}"`);

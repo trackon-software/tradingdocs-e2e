@@ -1,4 +1,5 @@
 const config = require('./config2.0');
+const navigateAndWait = require('../utils/navigateAndWait');
 
 module.exports = async function updateExtractor(page, extractorName = '') {
   const cfg = config.extractors;
@@ -12,7 +13,7 @@ module.exports = async function updateExtractor(page, extractorName = '') {
   try {
     console.log('🚀 Navigating to Extractors page...');
     await page.goto(cfg.baseUrl);
-    await page.waitForSelector(selectors.pageTitle, { timeout: timeouts.navigation });
+    await navigateAndWait(page, 'extractors');
     await page.waitForTimeout(1000);
 
     console.log(`🔍 Searching for extractor row with name: "${extractorName}"`);

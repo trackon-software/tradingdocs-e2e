@@ -1,4 +1,5 @@
 const { popoverHandler } = require('../utils/popoverHandler');
+const navigateAndWait = require('../utils/navigateAndWait');
 const config = require('./config2.0');
 
 module.exports = async function updateShipment(page, newBLNumber) {
@@ -19,8 +20,7 @@ module.exports = async function updateShipment(page, newBLNumber) {
 
   try {
     console.log('🚀 Navigating to Shipments page...');
-    await page.goto(cfg.baseUrl + cfg.shipmentsPath);
-    await page.waitForSelector('text=Shipments', { timeout: timeouts.pageLoad });
+    await navigateAndWait(page, 'shipment');
     await page.waitForTimeout(1000);
 
     console.log(`🔍 Searching for shipment with ID: ${data.shipmentId}...`);

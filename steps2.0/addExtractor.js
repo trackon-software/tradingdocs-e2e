@@ -1,6 +1,7 @@
 const { expect } = require('@playwright/test');
 const config = require('./config2.0');
-const dropdownHandler = require('../utils/dropdownHandler');
+const navigateAndWait = require('../utils/navigateAndWait');
+const { selectDropdownOption } = require('../utils/dropdownHandler');
 
 async function fillInput(page, selector, value) {
   const input = page.locator(selector);
@@ -15,7 +16,8 @@ async function addExtractor(page) {
   const { baseUrl, data, selectors, timeouts } = cfg;
 
   console.log('🚀 Navigating to Extractors page');
-  await page.goto(baseUrl);
+  await navigateAndWait(page, 'extractors');
+  await page.waitForURL(baseUrl);
 
   const title = page.locator(selectors.pageTitle);
   await expect(title).toBeVisible({ timeout: timeouts.navigation });
@@ -35,7 +37,7 @@ async function addExtractor(page) {
   await fillInput(page, selectors.descriptionInput, data.description);
 
   // Active dropdown seçimi
-  await dropdownHandler.selectDropdownOption(page, selectors.activeDropdownIcon, data.isActive, {
+  await selectDropdownOption(page, selectors.activeDropdownIcon, data.isActive, {
     openTimeout: timeouts.dropdown,
     optionTimeout: timeouts.dropdown,
   });

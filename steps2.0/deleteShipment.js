@@ -1,4 +1,5 @@
 const config = require('./config2.0');
+const navigateAndWait = require('../utils/navigateAndWait');
 
 module.exports = async function deleteShipment(page) {
   const cfg = config.shipment;
@@ -6,8 +7,7 @@ module.exports = async function deleteShipment(page) {
 
   try {
     console.log('🚀 Navigating to Shipments page...');
-    await page.goto(cfg.baseUrl + cfg.shipmentsPath);
-    await page.waitForSelector('text=Shipments', { timeout: timeouts.pageLoad });
+    await navigateAndWait(page, 'shipment');
     await page.waitForTimeout(1000);
 
     console.log(`🔍 Searching for shipment with ID: ${data.shipmentId}...`);

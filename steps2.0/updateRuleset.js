@@ -1,4 +1,5 @@
 const config = require('./config2.0');
+const navigateAndWait = require('../utils/navigateAndWait');
 
 module.exports = async function updateRuleset(page) {
   const cfg = config.ruleset;
@@ -6,8 +7,7 @@ module.exports = async function updateRuleset(page) {
 
   try {
     console.log('🚀 Navigating to Rulesets page...');
-    await page.goto(cfg.baseUrl + cfg.rulesetsPath, { timeout: timeouts.navigation });
-    await page.waitForSelector(selectors.pageTitle, { timeout: timeouts.pageLoad });
+    await navigateAndWait(page, 'ruleset');
     await page.waitForTimeout(1000);
 
     const rowSelector = `tr.e-row:has(td[title="${rulesetData.rulesetName}"])`;

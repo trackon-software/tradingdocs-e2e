@@ -1,12 +1,12 @@
 const config = require('./config2.0');
+const navigateAndWait = require('../utils/navigateAndWait');
+const { selectDropdownOption } = require('../utils/dropdownHandler');
 
 module.exports = async function addRuleset(page) {
-  const cfg = config.ruleset;
-  const { baseUrl, rulesetsPath, selectors, rulesetData, timeouts } = cfg;
+  const { selectors, rulesetData, timeouts } = config.ruleset;
 
   console.log('🚀 Navigating to Rulesets page');
-  await page.goto(baseUrl + rulesetsPath);
-  await page.waitForSelector(selectors.addButton, { timeout: timeouts.pageLoad });
+  await navigateAndWait(page, 'ruleset');
 
   console.log('🟢 Clicking "Add" button');
   await page.click(selectors.addButton);
@@ -22,20 +22,22 @@ module.exports = async function addRuleset(page) {
   await page.fill(selectors.rulesetSourceInput, rulesetData.rulesetSource);
   await page.fill(selectors.rulesInput, rulesetData.rules);
 
-  console.log('🔽 Selecting Ruleset Type');
-  await page.click(selectors.rulesetTypeDropdownIcon);
-  await page.waitForSelector(selectors.rulesetTypePopup, { timeout: timeouts.dropdownVisible });
-  await page.click(selectors.rulesetTypeListItem); // ilk öğe
+  console.log('🔽 Selecting Ruleset Type from dropdown');
+  await selectDropdownOption(page, selectors.rulesetTypeDropdownIcon, rulesetData.rulesetTypeOption, {
+    openTimeout: timeouts.dropdownVisible,
+    optionTimeout: timeouts.dropdownVisible,
+  });
 
   console.log('📂 Expanding Metadata accordion');
   await page.waitForTimeout(timeouts.beforeAccordion);
   await page.click(selectors.metadataAccordion);
   await page.waitForTimeout(timeouts.accordionAnimation);
 
-  console.log('✅ Selecting "Y" for Is Active');
-  await page.click(selectors.isActiveDropdownIcon);
-  await page.waitForSelector(selectors.isActivePopup, { timeout: timeouts.dropdownVisible });
-  await page.click(selectors.isActiveYOption);
+  console.log('✅ Selecting "Is Active" dropdown option');
+  await selectDropdownOption(page, selectors.isActiveDropdownIcon, rulesetData.isActiveOption, {
+    openTimeout: timeouts.dropdownVisible,
+    optionTimeout: timeouts.dropdownVisible,
+  });
 
   console.log('💾 Saving Ruleset');
   await page.waitForTimeout(timeouts.beforeSave);
