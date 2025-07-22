@@ -168,6 +168,9 @@ module.exports = {
       deleteConfirmPopup: '#confirmPopup',
       deleteConfirmOkButton: 'div.e-confirm-dialog.e-popup-open div.e-footer-content button.e-primary:has-text("OK")',
       tableRow: 'div.e-gridcontent tr.e-row',
+      descriptionEditor: '#inplaceeditor_916125099_2', // Description editor selector
+      descriptionEditorInput: '#rulesetDescription_editor', // Description input selector
+      descriptionSaveButton: '.e-btn-save.e-lib.e-btn.e-control.e-icon-btn', // Save button selector for description
     },
     rulesetData: {
       rulesetName: 'Test Ruleset',
@@ -178,7 +181,7 @@ module.exports = {
       effectiveDate: '07/14/2025',
       rulesetSource: 'Auto Test',
       rules: 'IF commodity == "Steel" THEN apply tax',
-      rulesetTypeOption: 'Commodity',  // Dropdown seçeneği config'de burada
+      rulesetTypeOption: 'Commodity',
       isActiveOption: 'Y',
     },
     timeouts: {
@@ -229,4 +232,63 @@ module.exports = {
       tableVisible: 7000,
     },
   },
+
+  entityList: {
+    baseUrl: 'https://demo.tradingdocs.ai', // Ana URL
+    entityListPath: '/entity-list', // Entity List sayfasının yolu
+    timeouts: {
+      pageLoad: 3000, // Sayfa yüklenme zaman aşımı (ms)
+      entityItemVisible: 2000, // Entity elemanının görünme zaman aşımı (ms)
+      entityNavigation: 2000, // Entity arası geçiş zaman aşımı (ms)
+      titleVisible: 2000, // Başlığın görünme zaman aşımı (ms)
+      tableLoad: 2000, // Tablo yüklenme zaman aşımı (ms)
+      dataLoad: 2000, // Veri yüklenme zaman aşımı (ms)
+      betweenNavigations: 1000 // Entityler arası geçiş için bekleme süresi (ms)
+    },
+    validation: {
+      checkUrl: true, // URL kontrolü yapılıp yapılmayacağı
+      requireTitle: true, // Başlık kontrolü yapılıp yapılmayacağı
+      requireTable: false, // Tablo kontrolü yapılıp yapılmayacağı
+      allowEmpty: false // Tablo boş olup olmamasına izin verilip verilmeyeceği
+    },
+    selectors: {
+      pageTitle: 'h1', // Sayfa başlığı seçici
+      dataTable: 'table', // Tablo seçici
+      tableRows: 'table tbody tr', // Tablo satırları seçici
+      errorMessage: '.error-message', // Hata mesajı seçici
+      loadingIndicator: '.loading-indicator' // Yüklenme göstergesi seçici
+    },
+    entities: [
+      {
+        name: 'Agent_usage',
+        selector: '#_AGENT_USAGE',
+        url: '/agent-usage',
+        expectedTitle: 'Agent Usage'
+      },
+      {
+        name: 'Child_document',
+        selector: '#_CHILD_DOCUMENT',
+        url: '/child-document',
+        expectedTitle: 'Child Document'
+      },
+      {
+        name: 'Company',
+        selector: '#_COMPANY',
+        url: '/company',
+        expectedTitle: 'Company'
+      },
+      {
+        name: 'Document',
+        selector: '#_DOCUMENT',
+        url: '/document',
+        expectedTitle: 'Document'
+      },
+      {
+        name: 'Ruleset',
+        selector: '#_RULESET',
+        url: '/ruleset',
+        expectedTitle: 'Ruleset'
+      }
+    ]
+  }
 };

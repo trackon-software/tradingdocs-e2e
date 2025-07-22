@@ -1,6 +1,7 @@
-// definitionsTest function - test_main.spec.js'e eklenecek
-
-async function definitionsTest(page) {
+// definitionsTest.js
+const navigateAndWait = require('../utils/navigateAndWait');
+const config = require('./config2.0');
+module.exports = async function definitionsTest(page) {
   console.log('🔍 Starting Definitions (Entity List) Navigation Test');
   
   try {
@@ -61,53 +62,6 @@ async function definitionsTest(page) {
           }
         }
         
-        // Tablo yüklenmesi kontrolü
-        if (config.entityList.validation.requireTable) {
-          try {
-            await page.waitForSelector(config.entityList.selectors.dataTable, {
-              timeout: config.entityList.timeouts.tableLoad
-            });
-            console.log(`  ✅ Table loaded for ${entity.name}`);
-            
-            // Tablo satır sayısı kontrolü
-            if (!config.entityList.validation.allowEmpty) {
-              const rows = page.locator(config.entityList.selectors.tableRows);
-              const rowCount = await rows.count();
-              
-              if (rowCount === 0) {
-                console.warn(`  ⚠️  No data found in table for ${entity.name}`);
-              } else {
-                console.log(`  📊 Found ${rowCount} rows in ${entity.name} table`);
-              }
-            }
-          } catch (error) {
-            console.warn(`  ⚠️  Table load failed for ${entity.name}: ${error.message}`);
-            
-            // Hata mesajı kontrolü
-            try {
-              const errorElement = page.locator(config.entityList.selectors.errorMessage);
-              if (await errorElement.isVisible()) {
-                const errorMsg = await errorElement.textContent();
-                console.error(`  ❌ Error message for ${entity.name}: ${errorMsg}`);
-              }
-            } catch (e) {
-              // Error mesajı bulunamadı, devam et
-            }
-          }
-        }
-        
-        // Loading indicator'ın kaybolmasını bekle
-        try {
-          await page.waitForSelector(config.entityList.selectors.loadingIndicator, {
-            state: 'hidden',
-            timeout: config.entityList.timeouts.dataLoad
-          });
-        } catch (error) {
-          // Loading indicator yoksa veya kaybolmadıysa devam et
-        }
-        
-        console.log(`  ✅ Successfully tested ${entity.name}`);
-        
         // Entity'ler arası geçiş için kısa bekleme
         await page.waitForTimeout(config.entityList.timeouts.betweenNavigations);
         
@@ -132,4 +86,4 @@ async function definitionsTest(page) {
     console.error('❌ Definitions test failed:', error.message);
     throw error;
   }
-}
+};

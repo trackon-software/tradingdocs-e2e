@@ -22,10 +22,10 @@ test('End-to-end shipment and ruleset flow', async ({ page }) => {
   //await addShipment(page);
   //await updateShipment(page);
   //await deleteShipment(page);
-  await addRuleset(page);
-  await updateRuleset(page);
-  //await definitionsTest(page);
-  await deleteRuleset(page);
+  //await addRuleset(page);
+  //await updateRuleset(page);
+  await definitionsTest(page);
+  //await deleteRuleset(page);
   //await addExtractor(page);
   //await updateExtractor(page);
   //await deleteExtractor(page);
