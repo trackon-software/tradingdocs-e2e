@@ -9,8 +9,57 @@ module.exports = async function addRuleset(page) {
   await navigateAndWait(page, 'ruleset');
 
   console.log('🟢 Clicking "Add" button');
+  
+  // Wait for the Add button to be visible and clickable
+  await page.waitForSelector(selectors.addButton, { timeout: timeouts.pageLoad });
   await page.click(selectors.addButton);
-  await page.waitForSelector(selectors.rulesetNameInput, { timeout: timeouts.formVisible });
+  
+  // Add a small delay after clicking Add button
+  await page.waitForTimeout(500);
+  
+  // Wait for the form/modal to appear and the input to become visible
+  console.log('⏳ Waiting for form to load...');
+  try {
+    await page.waitForSelector(selectors.rulesetNameInput, { 
+      state: 'visible',
+      timeout: timeouts.formVisible 
+    });
+  } catch (error) {
+    console.log('❌ Form input not visible, checking for modal or dialog...');
+    
+    // Try to wait for any modal/dialog container to appear first
+    const modalSelectors = [
+      '.e-dialog',
+      '.e-popup',
+      '.e-dlg-container',
+      '[role="dialog"]',
+      '.modal'
+    ];
+    
+    let modalFound = false;
+    for (const modalSelector of modalSelectors) {
+      try {
+        await page.waitForSelector(modalSelector, { timeout: 2000 });
+        console.log(`✅ Modal found with selector: ${modalSelector}`);
+        modalFound = true;
+        break;
+      } catch (e) {
+        // Continue to next selector
+      }
+    }
+    
+    if (!modalFound) {
+      console.log('❌ No modal found, retrying Add button click...');
+      await page.click(selectors.addButton);
+      await page.waitForTimeout(1000);
+    }
+    
+    // Try waiting for the input again
+    await page.waitForSelector(selectors.rulesetNameInput, { 
+      state: 'visible',
+      timeout: timeouts.formVisible 
+    });
+  }
 
   console.log('📝 Filling out Ruleset form');
   await page.fill(selectors.rulesetNameInput, rulesetData.rulesetName);

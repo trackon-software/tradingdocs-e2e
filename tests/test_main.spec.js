@@ -13,6 +13,7 @@ const addRuleset = require('../steps2.0/addRuleset');
 const updateRuleset = require('../steps2.0/updateRuleset');
 const deleteRuleset = require('../steps2.0/deleteRuleset');
 const definitionsTest = require('../steps2.0/definitionsTest');
+const entityBuilder = require('../steps2.0/entityBuilder');
 
 test('End-to-end shipment and ruleset flow', async ({ page }) => {
   console.log('🚀 Starting full E2E test flow');
@@ -21,12 +22,13 @@ test('End-to-end shipment and ruleset flow', async ({ page }) => {
   //await addShipment(page);
   //await updateShipment(page);
   //await deleteShipment(page);
-  //await addRuleset(page);
-  //await updateRuleset(page);
+  await addRuleset(page);
+  await updateRuleset(page);
   //await definitionsTest(page);
-  //await deleteRuleset(page);
-  await addExtractor(page);
+  await deleteRuleset(page);
+  //await addExtractor(page);
   //await updateExtractor(page);
   //await deleteExtractor(page);
+  //await entityBuilder(page);
   console.log('🎉 All steps completed successfully');
 });
