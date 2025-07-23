@@ -5,33 +5,33 @@ module.exports = async function definitionsTest(page) {
   console.log('🔍 Starting Definitions (Entity List) Navigation Test');
   
   try {
-    // Entity List sayfasına git
+    // Go to Entity list page.
     await page.goto(`${config.entityList.baseUrl}${config.entityList.entityListPath}`);
     await page.waitForTimeout(config.entityList.timeouts.pageLoad);
     
     console.log('📋 Navigated to Entity List page');
     
-    // Her entity için test yap
+    // Test the Entities.
     for (let i = 0; i < config.entityList.entities.length; i++) {
       const entity = config.entityList.entities[i];
       
       try {
         console.log(`🔎 Testing entity: ${entity.name} (${i + 1}/${config.entityList.entities.length})`);
         
-        // Entity'nin varlığını kontrol et
+        // Check if Entity exists.
         const entityElement = page.locator(entity.selector);
         await entityElement.waitFor({ 
           timeout: config.entityList.timeouts.entityItemVisible 
         });
         
-        // Entity'ye tıkla
+        // Click on Entity.
         await entityElement.click();
         console.log(`  ✅ Clicked on ${entity.name}`);
         
-        // Sayfa yüklenmesini bekle
+        // Wait for page load.
         await page.waitForTimeout(config.entityList.timeouts.entityNavigation);
         
-        // URL kontrolü
+        // URL check.
         if (config.entityList.validation.checkUrl) {
           await page.waitForFunction(
             (expectedUrl) => window.location.pathname.includes(expectedUrl),
@@ -41,7 +41,7 @@ module.exports = async function definitionsTest(page) {
           console.log(`  ✅ URL validation passed for ${entity.name}`);
         }
         
-        // Başlık kontrolü
+        // Header check.
         if (config.entityList.validation.requireTitle) {
           try {
             await page.waitForSelector(config.entityList.selectors.pageTitle, {
@@ -62,20 +62,20 @@ module.exports = async function definitionsTest(page) {
           }
         }
         
-        // Entity'ler arası geçiş için kısa bekleme
+        // Short wait between entity switches
         await page.waitForTimeout(config.entityList.timeouts.betweenNavigations);
         
       } catch (error) {
         console.error(`  ❌ Error testing ${entity.name}: ${error.message}`);
         
-        // Hata durumunda ana sayfaya geri dön
+        // Return to main page on error
         try {
           await page.goto(`${config.entityList.baseUrl}${config.entityList.entityListPath}`);
           await page.waitForTimeout(config.entityList.timeouts.pageLoad);
           console.log(`  🔄 Navigated back to entity list after error`);
         } catch (navigateError) {
           console.error(`  ❌ Failed to navigate back to entity list: ${navigateError.message}`);
-          throw navigateError; // Test'i durdur
+          throw navigateError; // Stop the test
         }
       }
     }

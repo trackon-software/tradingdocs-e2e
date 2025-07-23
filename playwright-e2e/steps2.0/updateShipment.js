@@ -6,13 +6,13 @@ module.exports = async function updateShipment(page, newBLNumber) {
   const cfg = config.shipment;
   const { selectors, timeouts, data } = cfg;
 
-  // newBLNumber parametresi kontrolü ve default değer
+  // Check newBLNumber parameter and set default
   if (!newBLNumber) {
-    newBLNumber = data.newBLNumber || 'BL654321'; // config'den al veya default kullan
+    newBLNumber = data.newBLNumber || 'BL654321'; // take from config or use default
     console.log(`⚠️ No newBLNumber provided, using default: ${newBLNumber}`);
   }
 
-  // String kontrolü
+  // String type check
   if (typeof newBLNumber !== 'string') {
     newBLNumber = String(newBLNumber);
     console.log(`⚠️ newBLNumber converted to string: ${newBLNumber}`);
@@ -60,21 +60,21 @@ module.exports = async function updateShipment(page, newBLNumber) {
     console.log('✅ BL Number edit modal is visible');
     await page.waitForTimeout(1000);
 
-    // Input field'ı bul ve temizle
+    // Find and clear input field
     const blInputSelector = 'input#blNumber';
     await page.waitForSelector(blInputSelector, { state: 'visible', timeout: 5000 });
     
-    // Mevcut değeri temizle
+    // Clear current value
     await page.click(blInputSelector);
-    await page.keyboard.press('Control+A'); // Tümünü seç
-    await page.keyboard.press('Delete'); // Sil
+    await page.keyboard.press('Control+A'); // Select all
+    await page.keyboard.press('Delete'); // Delete
     await page.waitForTimeout(500);
     
-    // Yeni değeri gir
+    // Enter new value
     console.log(`✍️ Entering new BL Number: "${newBLNumber}"`);
     await page.fill(blInputSelector, newBLNumber);
     
-    // Değerin doğru girildiğini kontrol et
+    // Verify value entered correctly
     const enteredValue = await page.inputValue(blInputSelector);
     console.log(`✅ BL Number updated to: "${enteredValue}"`);
     
@@ -102,7 +102,7 @@ module.exports = async function updateShipment(page, newBLNumber) {
     if (selectors.shipmentSavedPopupSelector) {
       await page.waitForSelector(selectors.shipmentSavedPopupSelector, { timeout: timeouts.shipmentSavedPopupTimeout });
       
-      // Success popup'ındaki OK butonuna tıkla
+      // Click OK button on success popup
       if (selectors.shipmentSavedPopupOkButtonSelector) {
         await page.click(selectors.shipmentSavedPopupOkButtonSelector);
         console.log('👍 Success popup OK button clicked');
@@ -115,17 +115,17 @@ module.exports = async function updateShipment(page, newBLNumber) {
     console.error('❌ Error in updateShipment:', e.message);
     console.error('Stack trace:', e.stack);
     
-    // Debug bilgisi
+    // Debug info
     try {
       const currentUrl = page.url();
       console.log(`🔍 Current URL: ${currentUrl}`);
       
-      // Modal açık mı kontrol et
+      // Check if modal is open
       const modalOpen = await page.$('div.e-dialog.e-popup-open');
       console.log(`🔍 Modal open: ${!!modalOpen}`);
       
       if (modalOpen) {
-        // Modal'ı kapatmaya çalış
+        // Try to close modal
         await page.keyboard.press('Escape');
         console.log('🔄 Attempted to close modal with Escape');
       }
@@ -133,6 +133,6 @@ module.exports = async function updateShipment(page, newBLNumber) {
       console.log('🔍 Debug info collection failed');
     }
     
-    throw e; // Hatayı yeniden fırlat
+    throw e; // Rethrow error
   }
 };

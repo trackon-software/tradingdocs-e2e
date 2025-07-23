@@ -1,0 +1,65 @@
+{
+  "summary": {
+    "total": 8,
+    "passed": 8,
+    "failed": 0,
+    "totalDuration": 118783
+  },
+  "results": [
+    {
+      "step": "login",
+      "status": "PASSED",
+      "duration": 5228
+    },
+    {
+      "step": "entityBuilder",
+      "status": "PASSED",
+      "duration": 4781
+    },
+    {
+      "step": "addExtractor",
+      "status": "PASSED",
+      "duration": 21858,
+      "result": {
+        "success": true,
+        "functionName": "addExtractor",
+        "timestamp": "2025-07-23T14:32:27.355Z"
+      }
+    },
+    {
+      "step": "addRuleset",
+      "status": "PASSED",
+      "duration": 9757
+    },
+    {
+      "step": "definitionsTest",
+      "status": "PASSED",
+      "duration": 36460
+    },
+    {
+      "step": "addShipment",
+      "status": "PASSED",
+      "duration": 9961
+    },
+    {
+      "step": "updateShipment",
+      "status": "PASSED",
+      "duration": 22198
+    },
+    {
+      "step": "deleteShipment",
+      "status": "PASSED",
+      "duration": 8540
+    }
+  ],
+  "orderedSteps": [
+    "login",
+    "entityBuilder",
+    "addExtractor",
+    "addRuleset",
+    "definitionsTest",
+    "addShipment",
+    "updateShipment",
+    "deleteShipment"
+  ]
+}

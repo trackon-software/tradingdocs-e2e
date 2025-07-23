@@ -20,7 +20,7 @@ module.exports = async function addShipment(page) {
     console.log('⏳ Waiting for modal to load...');
     await page.waitForSelector(selectors.modal, { timeout: timeouts.modalVisible });
     console.log('✅ Modal is loaded and visible');
-    await page.waitForTimeout(2000); // Modal'ın tamamen yüklenmesi için ekstra bekleme
+    await page.waitForTimeout(2000); // Extra wait to ensure modal is fully loaded
 
     console.log('📝 Filling out shipment form...');
 
@@ -38,7 +38,7 @@ module.exports = async function addShipment(page) {
     await page.fill(selectors.bookingNumberInput, cfg.data.bookingNumber);
     await page.fill(selectors.referenceInput, cfg.data.reference);
 
-    // Status dropdown seçimi için dropdownHandler kullanımı
+    // Using dropdownHandler for status dropdown selection
     console.log('🔧 Handling status dropdown...');
     try {
       await selectDropdownOption(page, selectors.statusDropdownIcon, 'Generated', {
@@ -71,7 +71,7 @@ module.exports = async function addShipment(page) {
 
     console.log('🎉 Shipment added successfully');
 
-    // Modal'ın kapanmasını bekle
+    // Wait for the modal to close
     await page.waitForSelector(selectors.modal, {
       state: 'hidden',
       timeout: timeouts.modalClose || 5000,
@@ -85,7 +85,7 @@ module.exports = async function addShipment(page) {
         await page.keyboard.press('Escape');
       }
     } catch {
-      // hata yoksa geç
+      // Ignore if no error
     }
 
     throw e;

@@ -17,7 +17,7 @@ module.exports = async function updateExtractor(page, extractorName = '') {
     await page.waitForTimeout(1000);
 
     console.log(`🔍 Searching for extractor row with name: "${extractorName}"`);
-    // Satırı buluyoruz, title attribute ile
+    // We find the row by title attribute
     const rowSelector = `tr.e-row:has(td[title="${extractorName}"])`;
     await page.waitForSelector(rowSelector, { timeout: timeouts.navigation });
     const row = page.locator(rowSelector);
@@ -27,9 +27,9 @@ module.exports = async function updateExtractor(page, extractorName = '') {
     await page.waitForTimeout(500);
 
     console.log('✏️ Clicking Edit button in the toolbar for the selected row...');
-    // Burada edit butonunu, row içindeki toolbar-item değilse bile genel sayfadaki ilgili toolbar-item'dan buluyoruz
-    // Çünkü edit button genelde tabloda değil toolbarda olabilir.
-    // Biz "Edit" başlıklı aktif butonu kesin seçiyoruz:
+    // Here we find the edit button from the general toolbar, even if it is not inside the row's toolbar-item
+    // Because the edit button is usually in the toolbar, not in the table.
+    // We definitely select the active button titled "Edit":
     const editButton = page.locator('div.e-toolbar-item[title="Edit"] > button.e-tbar-btn[aria-disabled="false"]');
     await editButton.waitFor({ state: 'visible', timeout: timeouts.input });
 

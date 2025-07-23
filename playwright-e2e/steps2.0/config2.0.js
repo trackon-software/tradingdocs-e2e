@@ -64,7 +64,7 @@ module.exports = {
       bookingNumber: 'BOOK1234',
       reference: 'Test Reference',
       expectedSuccessText: 'Success',
-      statusOption: 'Generated', // Burada dropdown seçeneği olarak status'u belirttik
+      statusOption: 'Generated', // Here we specify 'status' as a dropdown option
     },
     timeouts: {
       pageLoad: 10000,
@@ -234,29 +234,29 @@ module.exports = {
   },
 
   entityList: {
-    baseUrl: 'https://demo.tradingdocs.ai', // Ana URL
-    entityListPath: '/entity-list', // Entity List sayfasının yolu
+    baseUrl: 'https://demo.tradingdocs.ai', // Main URL
+    entityListPath: '/entity-list', // Path of the Entity List page
     timeouts: {
-      pageLoad: 3000, // Sayfa yüklenme zaman aşımı (ms)
-      entityItemVisible: 2000, // Entity elemanının görünme zaman aşımı (ms)
-      entityNavigation: 2000, // Entity arası geçiş zaman aşımı (ms)
-      titleVisible: 2000, // Başlığın görünme zaman aşımı (ms)
-      tableLoad: 2000, // Tablo yüklenme zaman aşımı (ms)
-      dataLoad: 2000, // Veri yüklenme zaman aşımı (ms)
-      betweenNavigations: 1000 // Entityler arası geçiş için bekleme süresi (ms)
+      pageLoad: 3000, // Page load timeout (ms)
+      entityItemVisible: 2000, // Timeout for entity item visibility (ms)
+      entityNavigation: 2000, // Timeout for navigation between entities (ms)
+      titleVisible: 2000, // Timeout for title visibility (ms)
+      tableLoad: 2000, // Timeout for table loading (ms)
+      dataLoad: 2000, // Timeout for data loading (ms)
+      betweenNavigations: 1000 // Wait time between entity switches (ms)
     },
     validation: {
-      checkUrl: true, // URL kontrolü yapılıp yapılmayacağı
-      requireTitle: true, // Başlık kontrolü yapılıp yapılmayacağı
-      requireTable: false, // Tablo kontrolü yapılıp yapılmayacağı
-      allowEmpty: false // Tablo boş olup olmamasına izin verilip verilmeyeceği
+      checkUrl: true, // Whether to check the URL or not
+      requireTitle: true, // Whether to check the title or not
+      requireTable: false, // Whether to check the table or not
+      allowEmpty: false // Whether to allow the table to be empty or not
     },
     selectors: {
-      pageTitle: 'h1', // Sayfa başlığı seçici
-      dataTable: 'table', // Tablo seçici
-      tableRows: 'table tbody tr', // Tablo satırları seçici
-      errorMessage: '.error-message', // Hata mesajı seçici
-      loadingIndicator: '.loading-indicator' // Yüklenme göstergesi seçici
+      pageTitle: 'h1', // Page title selector
+      dataTable: 'table', // Table selector
+      tableRows: 'table tbody tr', // Table rows selector
+      errorMessage: '.error-message', // Error message selector
+      loadingIndicator: '.loading-indicator' // Loading indicator selector
     },
     entities: [
       {
