@@ -39,7 +39,11 @@ const selectedSteps = [
   'addExtractor',
   'addRuleset',
   'definitionsTest',
+  'addShipment',
+  'updateShipment',
+  'deleteShipment',
 ];
+
 
 // Bağımlılığa göre sıralama (topolojik sort)
 function resolveExecutionOrder(stepsMap, selectedSteps) {
