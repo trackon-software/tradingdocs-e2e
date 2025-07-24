@@ -2,15 +2,21 @@ const navigateAndWait = require('../utils/navigateAndWait');
 const config = require('./config2.0');
 const { expect } = require('@playwright/test');
 
-module.exports = async function deleteRuleset(page) {
+module.exports = async function deleteRuleset(page, rulesetName = '') {
   const cfg = config.ruleset;
   const { selectors, timeouts, rulesetData } = cfg;
+
+  // Use the updated name if no specific name provided
+  if (!rulesetName) {
+    rulesetName = rulesetData.updatedRulesetName; // ✅ FIXED: Look for "Updated Ruleset"
+    console.log(`⚠️ No rulesetName provided, using updated name: ${rulesetName}`);
+  }
 
   console.log('🚀 Navigating to Rulesets page');
   await navigateAndWait(page, 'ruleset');
 
-  console.log(`🔍 Searching for ruleset named "${rulesetData.rulesetName}"`);
-  const row = page.locator(selectors.tableRow, { hasText: rulesetData.rulesetName }).first();
+  console.log(`🔍 Searching for ruleset named "${rulesetName}"`);
+  const row = page.locator(selectors.tableRow, { hasText: rulesetName }).first();
   
   // Assert the ruleset row exists and is visible
   await expect(row).toBeVisible({ timeout: timeouts.pageLoad });
@@ -41,7 +47,12 @@ module.exports = async function deleteRuleset(page) {
   await confirmOkButton.click();
   console.log('✅ Delete confirmed');
 
+  // ✅ FIXED: Remove the dialog handling completely from deleteRuleset
+  // The delete confirmation is handled by clicking the OK button, not browser dialog
+  console.log('⏳ Waiting for delete operation to complete...');
+  await page.waitForTimeout(timeouts.saveProcessing * 2); // Wait for delete to process
+
   // Assert successful deletion by checking that the row disappears
   await expect(row).not.toBeAttached({ timeout: timeouts.pageLoad });
-  console.log(`🎉 Ruleset "${rulesetData.rulesetName}" deleted successfully`);
+  console.log(`🎉 Ruleset "${rulesetName}" deleted successfully`);
 };

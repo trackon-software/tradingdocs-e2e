@@ -17,7 +17,7 @@ module.exports = {
     baseUrl: 'https://demo.tradingdocs.ai',
     shipmentsPath: '/shipments',
     selectors: {
-      addButton: 'button#grid_1979692032_0_add',
+      addButton: 'button[aria-label="Add"]',
       modal: '.e-dialog.e-popup-open[role="dialog"]',
       shipmentIdInput: 'input#shipmentId',
       shipperInput: 'input#shipper',
@@ -67,6 +67,8 @@ module.exports = {
       statusOption: 'Generated', // Here we specify 'status' as a dropdown option
     },
     timeouts: {
+      generalWait: 500,
+      saveProcessing: 1000,
       pageLoad: 10000,
       buttonVisible: 5000,
       modalVisible: 5000,
@@ -79,65 +81,59 @@ module.exports = {
     },
   },
   extractors: {
-    baseUrl: 'https://demo.tradingdocs.ai/extractors',
-    data: {
-      extractorName: 'Test Extractor',
-      description: 'This is a test extractor.',
-      isActive: 'Y',
-      isRepeating: 'false', // Make sure this matches exactly what appears in the dropdown
-      entityName: 'PO', // Make sure this matches exactly what appears in the dropdown
-      itemType: 'Sample Item',
-      specialInstructions: 'Handle with care',
-      itemIdentifier: 'ID-12345',
-      batchSize: 10,
-      itemPatterns: 'pattern1, pattern2',
-    },
-    selectors: {
-      pageTitle: 'h3.page-title',
-      addButton: 'button.e-tbar-btn:has-text("Add")',
-      extractorNameInput: 'input#extractorName',
-      descriptionInput: 'input#description',
-      activeDropdownIcon: 'div.e-control-wrapper .e-ddl-icon',
-      entitiesSection: '.e-acrdn-item:has-text("Entities")',
-      entitiesAccordion: '.e-acrdn-item:has-text("Entities")',
-      entitiesGrid: '.e-acrdn-item:has-text("Entities") .e-grid',
-      entitiesAddButton: '.e-acrdn-item:has-text("Entities") .e-toolbar-item button.e-tbar-btn:has-text("Add")',
-      mainSaveButton: 'button.submit-button:has-text("Save")',
-      
-      // Updated modal selectors based on the HTML structure
-      entitiesModal: '.e-dialog.e-popup-open[role="dialog"]:has(.e-dlg-header:has-text("Add Entities"))',
-      
-      // Updated dropdown icon selectors based on the actual HTML structure
-      entitiesModalIsRepeatingDropdownIcon: '#isRepeating ~ .e-input-group-icon.e-ddl-icon',
-      entitiesModalEntityNameDropdownIcon: '#entityName ~ .e-input-group-icon.e-ddl-icon',
-      
-      // Popup selectors for dropdowns
-      entitiesModalIsRepeatingPopup: '.e-popup-open ul.e-ul',
-      entitiesModalEntityNamePopup: '.e-popup-open ul.e-ul',
-      
-      // Modal save button selector
-      entitiesModalSaveButton: 'button.submit-button:has-text("Save")',
-      
-      // Additional field selectors for direct access if needed
-      itemTypeInput: '#itemType',
-      specialInstructionsInput: '#specialInstructions',
-      itemIdentifierInput: '#itemIdentifier',
-      batchSizeInput: '#batchSize',
-      itemPatternsInput: '#itemPatterns',
-      isRepeatingDropdown: '#isRepeating',
-      entityNameDropdown: '#entityName',
-    },
-    timeouts: {
-      accordionExpand: 2000,
-      addButtonVisible: 5000,
-      navigation: 10000,
-      dropdown: 10000,
-      input: 5000,
-      modal: 15000,
-      pageLoad: 10000,
-      modalOpen: 5000,
-    },
+  baseUrl: 'https://demo.tradingdocs.ai/extractors',
+  data: {
+    extractorName: 'Test Extractor',
+    updatedExtractorName: 'Updated Extractor', // Used in updateExtractor
+    description: 'This is a test extractor.',
+    isActive: 'Y',
+    isRepeating: 'false',
+    entityName: 'PO',
+    itemType: 'Sample Item',
+    specialInstructions: 'Handle with care',
+    itemIdentifier: 'ID-12345',
+    batchSize: 10,
+    itemPatterns: 'pattern1, pattern2',
   },
+  selectors: {
+    pageTitle: 'h3.page-title',
+    addButton: 'button.e-tbar-btn:has-text("Add")',
+    extractorNameInput: 'input#extractorName',
+    extractorNameEditor: '.full-width-inline-editor:has(small:text("Extractor Name")) .e-inplaceeditor',
+    extractorNamePopupInput: '.e-tooltip-wrap.e-popup-open input#extractorName_editor',
+    extractorNameSaveButton: '.e-tooltip-wrap.e-popup-open .e-btn-save',
+    extractorPopupTooltip: '.e-tooltip-wrap.e-popup-open', // For waiting states
+    extractorRowByTitle: (name) => `tr.e-row:has(td[title="${name}"])`, // Dynamic selector
+    descriptionInput: 'input#description',
+    activeDropdownIcon: 'div.e-control-wrapper .e-ddl-icon',
+    entitiesSection: '.e-acrdn-item:has-text("Entities")',
+    entitiesAccordion: '.e-acrdn-item:has-text("Entities")',
+    entitiesGrid: '.e-acrdn-item:has-text("Entities") .e-grid',
+    entitiesAddButton: '.e-acrdn-item:has-text("Entities") .e-toolbar-item button.e-tbar-btn:has-text("Add")',
+    mainSaveButton: 'button.btn-primary:has-text("Update Extractor")',
+    deleteButton: 'button[id*="delete"]:has-text("Delete")',
+    editButton: 'div.e-toolbar-item[title="Edit"] > button.e-tbar-btn[aria-disabled="false"]',
+    confirmDeletePopup: '.e-confirm-dialog.e-popup-open',
+    confirmDeleteButton: '.e-confirm-dialog.e-popup-open .e-footer-content button.e-primary',
+    successMessage: '.e-alert-dialog.e-popup-open .e-dlg-content',
+  },
+  timeouts: {
+    accordionExpand: 2000,
+    addButtonVisible: 5000,
+    navigation: 10000,
+    dropdown: 10000,
+    input: 5000,
+    modal: 15000,
+    pageLoad: 10000,
+    modalOpen: 5000,
+    buttonVisible: 5000,
+    inlineEditorWait: 2000, // For inline editor loading
+    saveProcessing: 1000, // For save operations
+    editModeActivation: 1000, // For edit mode activation
+    generalWait: 500, // For general waits
+    browserPopup: 3000, // For browser alert/confirm dialogs
+  },
+},
   ruleset: {
     baseUrl: 'https://demo.tradingdocs.ai',
     rulesetsPath: '/rulesets',
@@ -168,12 +164,19 @@ module.exports = {
       deleteConfirmPopup: '#confirmPopup',
       deleteConfirmOkButton: 'div.e-confirm-dialog.e-popup-open div.e-footer-content button.e-primary:has-text("OK")',
       tableRow: 'div.e-gridcontent tr.e-row',
-      descriptionEditor: '#inplaceeditor_916125099_2', // Description editor selector
-      descriptionEditorInput: '#rulesetDescription_editor', // Description input selector
-      descriptionSaveButton: '.e-btn-save.e-lib.e-btn.e-control.e-icon-btn', // Save button selector for description
+      
+      // ✅ RULESET NAME INLINE EDITOR (like updateExtractor pattern)
+      rulesetNameEditor: '.full-width-inline-editor:has(small:text("Ruleset Name")) .e-inplaceeditor',
+      rulesetNamePopupInput: '.e-tooltip-wrap.e-popup-open input#rulesetName_editor',
+      rulesetNameSaveButton: '.e-tooltip-wrap.e-popup-open .e-btn-save',
+      rulesetPopupTooltip: '.e-tooltip-wrap.e-popup-open', // For waiting states
+      rulesetRowByTitle: (name) => `tr.e-row:has(td[title="${name}"])`, // Dynamic selector
+      
+      updateButton: 'button.btn-primary:has-text("Update Ruleset")', // Added missing selector
     },
     rulesetData: {
       rulesetName: 'Test Ruleset',
+      updatedRulesetName: 'Updated Ruleset', // NEW - for updateRuleset
       rulesetDescription: 'Automatically created via Playwright',
       commodity: 'Steel',
       destinationCountry: 'UAE',
@@ -187,6 +190,8 @@ module.exports = {
     timeouts: {
       pageLoad: 10000,
       formVisible: 5000,
+      inputVisible: 5000,
+      buttonVisible: 5000,
       inputFillDelay: 100,
       beforeDropdownSelection: 500,
       dropdownVisible: 5000,
@@ -197,6 +202,10 @@ module.exports = {
       successVisible: 10000,
       navigation: 10000,
       selector: 5000,
+      inlineEditorWait: 2000, // For inline editor loading
+      saveProcessing: 1000, // For save operations
+      editModeActivation: 1000, // For edit mode activation
+      generalWait: 500, // For general waits
     },
   },
   entityBuilder: {

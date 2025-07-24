@@ -1,54 +1,57 @@
-const navigateAndWait = require('../utils/navigateAndWait');
-const config = require('./config2.0');
-const { expect } = require('@playwright/test');
+// steps2.0/deleteExtractor.js
 
-module.exports = async function deleteExtractor(page, extractorName = '') {
+const { expect } = require('@playwright/test');
+const config = require('./config2.0');
+
+module.exports = async function deleteExtractor(page, extractorName) {
   const cfg = config.extractors;
   const { selectors, timeouts, data } = cfg;
 
-  if (!extractorName) {
-    extractorName = data.extractorName;
-    console.log(`⚠️ No extractorName provided, using default: ${extractorName}`);
-  }
+  // Use the provided name or fall back to the updated name from config
+  // This ensures we're looking for the extractor by its current name, not the original description
+  extractorName = extractorName || data.updatedExtractorName;
+  console.log(`🔍 Searching for extractor with name: "${extractorName}"`);
 
   console.log('🚀 Navigating to Extractors page...');
-  await navigateAndWait(page, 'extractors');
-  await page.waitForTimeout(1000);
+  await page.goto(cfg.baseUrl);
+  await page.waitForSelector(selectors.pageTitle, { timeout: timeouts.pageLoad });
+  console.log('✅ Navigated to Extractors page');
 
-  console.log(`🔍 Searching for extractor row with name: "${extractorName}"`);
-  const rowSelector = `tr.e-row:has(td[title="${extractorName}"])`;
-  const row = page.locator(rowSelector);
+  console.log(`🔍 Searching for extractor with name: "${extractorName}"`);
+  // Use the proper selector for finding by name, not description
+  const rowSelector = selectors.extractorRowByTitle(extractorName);
 
-  // Assert the extractor row exists and is visible
-  await expect(row).toBeVisible({ timeout: timeouts.navigation });
+  // Assert extractor row exists
+  const extractorRow = page.locator(rowSelector);
+  await expect(extractorRow).toBeVisible({ timeout: timeouts.pageLoad });
   console.log('✅ Extractor row found');
 
-  // Click the row
-  await row.click();
-  console.log('✅ Extractor row clicked');
-  await page.waitForTimeout(500);
+  // Click the extractor row
+  await extractorRow.click();
+  console.log('🟡 Extractor row clicked (selected)');
+  await page.waitForTimeout(timeouts.generalWait);
 
-  console.log('🗑️ Looking for Delete button...');
-  const deleteButton = page.locator('button[aria-label="Delete"]:not([aria-disabled="true"])');
-
-  // Assert delete button is visible and enabled
-  await expect(deleteButton).toBeVisible({ timeout: timeouts.input });
+  // Assert delete button is visible and click it
+  const deleteButton = page.locator(selectors.deleteButton);
+  await expect(deleteButton).toBeVisible({ timeout: timeouts.buttonVisible });
   await deleteButton.click();
-  console.log('✅ Delete button clicked');
+  console.log('🗑️ Delete button clicked');
+  await page.waitForTimeout(timeouts.generalWait);
 
-  // Assert confirmation popup appears (you may need to adjust this selector based on your actual popup)
+  // Assert confirmation popup appears
   console.log('⏳ Waiting for confirmation popup...');
-  const confirmPopup = page.locator('.e-confirm-dialog.e-popup-open, .e-dialog.e-popup-open[role="dialog"]');
-  await expect(confirmPopup).toBeVisible({ timeout: timeouts.modal });
+  const confirmPopup = page.locator(selectors.confirmDeletePopup);
+  await expect(confirmPopup).toBeVisible({ timeout: timeouts.modalOpen });
   console.log('✅ Confirmation popup appeared');
 
-  // If there's a confirmation step, you can add it here:
-  const confirmOkButton = page.locator('.e-confirm-dialog.e-popup-open .e-footer-content button.e-primary');
-  await expect(confirmOkButton).toBeVisible({ timeout: timeouts.input });
+  // Assert OK button exists and click it
+  const confirmOkButton = page.locator(selectors.confirmDeleteButton);
+  await expect(confirmOkButton).toBeVisible({ timeout: timeouts.modalOpen });
   await confirmOkButton.click();
   console.log('✅ Delete confirmed');
+  await page.waitForTimeout(timeouts.saveProcessing * 2); // Give more time for deletion
 
-  // Assert successful deletion by checking that the row disappears
-  await expect(row).not.toBeAttached({ timeout: timeouts.navigation });
-  console.log(`🎉 Extractor "${extractorName}" deleted successfully`);
+  // Assert successful deletion - extractor row should disappear
+  await expect(extractorRow).not.toBeAttached({ timeout: timeouts.modal });
+  console.log('🎉 Extractor deleted successfully (row disappeared)');
 };

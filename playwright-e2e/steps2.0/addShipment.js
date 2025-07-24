@@ -11,19 +11,27 @@ module.exports = async function addShipment(page) {
     await navigateAndWait(page, 'shipment');
 
     console.log('🔍 Checking if Add button is loaded...');
-    await page.waitForSelector(selectors.addButton, { timeout: timeouts.buttonVisible });
+    const addBtn = page.locator(selectors.addButton);
+    await addBtn.waitFor({ timeout: timeouts.buttonVisible });
     console.log('✅ Add button is loaded and visible');
 
-    console.log('🔧 Clicking Add button...');
-    await page.click(selectors.addButton);
+    console.log('🔧 Scrolling into view and clicking Add button...');
+    await addBtn.scrollIntoViewIfNeeded();
+    await addBtn.click(); // you can add { force: true } if still unreliable
 
     console.log('⏳ Waiting for modal to load...');
-    await page.waitForSelector(selectors.modal, { timeout: timeouts.modalVisible });
-    console.log('✅ Modal is loaded and visible');
-    await page.waitForTimeout(2000); // Extra wait to ensure modal is fully loaded
+    try {
+      await page.waitForSelector(selectors.modal, { timeout: timeouts.modalVisible });
+      console.log('✅ Modal is loaded and visible');
+    } catch (modalError) {
+      console.error('❌ Modal did not appear. Taking screenshot for debugging...');
+      await page.screenshot({ path: 'modal-load-failure.png', fullPage: true });
+      throw modalError;
+    }
+
+    await page.waitForTimeout(2000); // Wait to ensure modal is fully rendered
 
     console.log('📝 Filling out shipment form...');
-
     await page.fill(selectors.shipmentIdInput, cfg.data.shipmentId);
     await page.fill(selectors.shipperInput, cfg.data.shipper);
     await page.fill(selectors.consigneeInput, cfg.data.consignee);
@@ -38,7 +46,6 @@ module.exports = async function addShipment(page) {
     await page.fill(selectors.bookingNumberInput, cfg.data.bookingNumber);
     await page.fill(selectors.referenceInput, cfg.data.reference);
 
-    // Using dropdownHandler for status dropdown selection
     console.log('🔧 Handling status dropdown...');
     try {
       await selectDropdownOption(page, selectors.statusDropdownIcon, 'Generated', {
@@ -48,7 +55,6 @@ module.exports = async function addShipment(page) {
       console.log('✅ Status selection completed successfully');
     } catch (statusError) {
       console.warn('⚠️ Status selection failed:', statusError.message);
-      console.warn('Continuing without status selection...');
     }
 
     console.log('💾 Clicking Save button...');
@@ -60,7 +66,7 @@ module.exports = async function addShipment(page) {
     });
 
     const successText = await page.textContent(selectors.shipmentSavedPopupSuccessMessageSelector);
-    if (successText && successText.trim() !== cfg.data.expectedSuccessText) {
+    if (successText?.trim() !== cfg.data.expectedSuccessText) {
       console.warn(`⚠️ Unexpected popup message: "${successText}"`);
     } else {
       console.log('✅ Success popup received with correct message');
@@ -71,23 +77,19 @@ module.exports = async function addShipment(page) {
 
     console.log('🎉 Shipment added successfully');
 
-    // Wait for the modal to close
+    console.log('⏳ Waiting for modal to close...');
     await page.waitForSelector(selectors.modal, {
       state: 'hidden',
       timeout: timeouts.modalClose || 5000,
     });
   } catch (e) {
     console.error('❌ Error in addShipment:', e.message);
-
     try {
       const modalVisible = await page.$(selectors.modal);
       if (modalVisible) {
         await page.keyboard.press('Escape');
       }
-    } catch {
-      // Ignore if no error
-    }
-
+    } catch (_) {}
     throw e;
   }
 };
