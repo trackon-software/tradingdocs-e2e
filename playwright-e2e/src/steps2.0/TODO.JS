@@ -1,0 +1,1 @@
+/*Hata gördüğün yeri sağlam bir şekilde logla ve hata olan yerin script farketmeksizin ekran görüntüsünü al tüm logları failed_steps.log'da göster*/

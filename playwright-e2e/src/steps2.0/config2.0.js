@@ -41,7 +41,7 @@ module.exports = {
       shipmentSavedPopupSelector: 'div.e-alert-dialog.e-popup-open',
       shipmentSavedPopupOkButtonSelector: 'button.predefined-dialog',
       shipmentSavedPopupSuccessMessageSelector: 'div.dialog-text > h2',
-      deleteButton: 'button#grid_1979692032_0_delete',
+      deleteButton: 'div.e-toolbar-item[title="Delete"] button:has-text("Delete")',
       deleteConfirmPopup: 'div.e-dialog.e-popup-open[role="dialog"]',
       deleteConfirmOkButton: 'div.e-footer-content button.e-primary:has-text("OK")',
       gridRowCheckbox: 'div.e-gridcontent tbody tr.e-row td .e-checkselect',
@@ -243,29 +243,29 @@ module.exports = {
   },
 
   entityList: {
-    baseUrl: 'https://demo.tradingdocs.ai', // Main URL
-    entityListPath: '/entity-list', // Path of the Entity List page
+    baseUrl: 'https://demo.tradingdocs.ai',
+    entityListPath: '/entity-list',
     timeouts: {
-      pageLoad: 3000, // Page load timeout (ms)
-      entityItemVisible: 2000, // Timeout for entity item visibility (ms)
-      entityNavigation: 2000, // Timeout for navigation between entities (ms)
-      titleVisible: 2000, // Timeout for title visibility (ms)
-      tableLoad: 2000, // Timeout for table loading (ms)
-      dataLoad: 2000, // Timeout for data loading (ms)
-      betweenNavigations: 1000 // Wait time between entity switches (ms)
+      pageLoad: 3000,
+      entityItemVisible: 2000,
+      entityNavigation: 2000,
+      titleVisible: 2000,
+      tableLoad: 2000,
+      dataLoad: 2000,
+      betweenNavigations: 1000
     },
     validation: {
-      checkUrl: true, // Whether to check the URL or not
-      requireTitle: true, // Whether to check the title or not
-      requireTable: false, // Whether to check the table or not
-      allowEmpty: false // Whether to allow the table to be empty or not
+      checkUrl: true,
+      requireTitle: true,
+      requireTable: true,
+      allowEmpty: true
     },
     selectors: {
-      pageTitle: 'h1', // Page title selector
-      dataTable: 'table', // Table selector
-      tableRows: 'table tbody tr', // Table rows selector
-      errorMessage: '.error-message', // Error message selector
-      loadingIndicator: '.loading-indicator' // Loading indicator selector
+      pageTitle: 'h1',
+      dataTable: 'table',
+      tableRows: 'table tbody tr',
+      errorMessage: '.error-message',
+      loadingIndicator: '.loading-indicator'
     },
     entities: [
       {

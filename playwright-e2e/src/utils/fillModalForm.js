@@ -4,15 +4,15 @@ const { selectDropdownOption } = require('../utils/dropdownHandler');
 async function fillModalForm(page) {
   const { data, selectors, timeouts } = config.extractors;
 
-  // Modal form locator (form ID’sine göre, bu örnek HTML’deki form ID'si)
+  // Modal form locator (depending on form ID)
   const modalForm = page.locator('form#grid_1781639624_2EditForm');
 
-  // Modal görünür mü bekle (modal görünürlüğü genelde wrapper veya form’un görünmesiyle kontrol edilir)
+  // Check if Modal is visible
   await modalForm.waitFor({ state: 'visible', timeout: timeouts.modal });
 
   console.log('📦 Modal form is visible');
 
-  // Input doldur: input#itemType
+  // Fill Input: input#itemType
   await modalForm.locator('input#itemType').fill(data.itemType || '');
   console.log(`✍️ Filled Item Type: ${data.itemType || ''}`);
 
@@ -48,7 +48,7 @@ async function fillModalForm(page) {
   await modalForm.locator('input#itemPatterns').fill(data.itemPatterns || '');
   console.log(`✍️ Filled Item Patterns: ${data.itemPatterns || ''}`);
 
-  // Modal Save button (footerdaki buton)
+  // Modal Save button (button at footer)
   const saveButton = page.locator('.e-footer-content button.submit-button');
   await saveButton.waitFor({ state: 'visible', timeout: timeouts.input });
   await saveButton.click();
