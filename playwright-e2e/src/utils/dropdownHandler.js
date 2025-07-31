@@ -1,63 +1,56 @@
-async function selectDropdownOption(page, iconSelector, optionText, options = {}) {
+async function selectDropdownOption(scope, iconSelector, optionText, options = {}) {
   const openTimeout = options.openTimeout || 8000;
   const optionTimeout = options.optionTimeout || 8000;
   const popupSelector = options.popupSelector || '.e-popup-open ul.e-ul';
 
+  const isPage = !!scope.waitForSelector;
+
+  const waitFor = async (selector, state, timeout) =>
+    isPage
+      ? scope.waitForSelector(selector, { state, timeout })
+      : scope.locator(selector).waitFor({ state, timeout });
+
+  const click = async (selector) =>
+    isPage
+      ? scope.click(selector)
+      : scope.locator(selector).click();
+
+  const locator = (selector) =>
+    isPage ? scope.locator(selector) : scope.locator(selector);
+
   try {
     console.log(`🔽 Opening dropdown with selector: ${iconSelector}`);
-    
-    // Wait for the dropdown icon to be visible and clickable
-    await page.waitForSelector(iconSelector, { state: 'visible', timeout: openTimeout });
-    await page.waitForTimeout(500); // Give time for any previous animations
-    
-    // Click the dropdown icon
-    await page.click(iconSelector);
+    await waitFor(iconSelector, 'visible', openTimeout);
+    await scope.waitForTimeout?.(500); // Only works on Page
 
+    await click(iconSelector);
     console.log(`⏳ Waiting for dropdown popup: ${popupSelector}`);
-    await page.waitForSelector(popupSelector, { state: 'visible', timeout: openTimeout });
-    
-    // Wait for dropdown to fully render
-    await page.waitForTimeout(1000);
+    await waitFor(popupSelector, 'visible', openTimeout);
+    await scope.waitForTimeout?.(1000);
 
-    // Construct the option selector
     const optionSelector = `${popupSelector} .e-list-item:has-text("${optionText}")`;
     console.log(`⏳ Waiting for option: ${optionSelector}`);
+    await waitFor(optionSelector, 'visible', optionTimeout);
+    await scope.waitForTimeout?.(300);
 
-    // Wait for the specific option to be visible
-    await page.waitForSelector(optionSelector, { state: 'visible', timeout: optionTimeout });
-    
-    // Small delay before clicking the option
-    await page.waitForTimeout(300);
-    
-    // Click the option
-    await page.click(optionSelector);
+    await click(optionSelector);
 
-    // Wait for dropdown to close
-    await page.waitForTimeout(500);
-    
-    console.log(`✅ Selected option: ${optionText}`);
-    
-    // Verify the selection was successful by checking if the dropdown closed
     try {
-      await page.waitForSelector(popupSelector, { state: 'hidden', timeout: 2000 });
+      await waitFor(popupSelector, 'hidden', 2000);
       console.log(`✅ Dropdown closed successfully`);
-    } catch (e) {
-      console.log(`⚠️ Dropdown might still be open, continuing...`);
+    } catch {
+      console.log(`⚠️ Dropdown might still be open`);
     }
-    
+
+    console.log(`✅ Selected option: ${optionText}`);
   } catch (e) {
     console.error(`❌ Failed to select dropdown option: ${optionText}`, e.message);
-    
-    // Try to debug what options are available
     try {
-      const availableOptions = await page.$$eval(`${popupSelector} .e-list-item`, elements => 
-        elements.map(el => el.textContent.trim())
-      );
-      console.log(`Available options: ${availableOptions.join(', ')}`);
-    } catch (debugError) {
-      console.log(`Could not retrieve available options`);
+      const options = await locator(`${popupSelector} .e-list-item`).allTextContents();
+      console.log(`Available options: ${options.join(', ')}`);
+    } catch {
+      console.log(`⚠️ Could not retrieve available options`);
     }
-    
     throw e;
   }
 }

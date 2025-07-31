@@ -47,6 +47,14 @@ module.exports = {
       gridRowCheckbox: 'div.e-gridcontent tbody tr.e-row td .e-checkselect',
       confirmDeletePopup: '.e-confirm-dialog.e-popup-open',
       confirmDeleteButton: '.e-confirm-dialog.e-popup-open .e-footer-content button.e-primary',
+      refreshButton: 'button[aria-label="Refresh"]',
+      nextPageButton: 'div.e-next[title="Go to next page"]',
+      generalTabButton: 'li.nav-item > a[data-bs-target="#general"]',
+      modalSaveButton: 'button.e-primary:has-text("Save")',
+    },
+    rowSelectors: {
+      byBL: (bl) => `tr.e-row:has(td[title="${bl}"])`,
+      byShipmentIdInColumn: (shipmentId) => `tr.e-row:has(td[title="${shipmentId}"]) td[aria-colindex="4"]`
     },
     data: {
       shipmentId: 'TEST-001',
@@ -64,7 +72,7 @@ module.exports = {
       bookingNumber: 'BOOK1234',
       reference: 'Test Reference',
       expectedSuccessText: 'Success',
-      statusOption: 'Generated', // Here we specify 'status' as a dropdown option
+      statusOption: 'Generated'
     },
     timeouts: {
       generalWait: 500,
@@ -81,59 +89,60 @@ module.exports = {
     },
   },
   extractors: {
-  baseUrl: 'https://demo.tradingdocs.ai/extractors',
-  data: {
-    extractorName: 'Test Extractor',
-    updatedExtractorName: 'Updated Extractor', // Used in updateExtractor
-    description: 'This is a test extractor.',
-    isActive: 'Y',
-    isRepeating: 'false',
-    entityName: 'PO',
-    itemType: 'Sample Item',
-    specialInstructions: 'Handle with care',
-    itemIdentifier: 'ID-12345',
-    batchSize: 10,
-    itemPatterns: 'pattern1, pattern2',
+    baseUrl: 'https://demo.tradingdocs.ai/extractors',
+    data: {
+      extractorName: 'Test Extractor',
+      updatedExtractorName: 'Updated Extractor',
+      description: 'This is a test extractor.',
+      isActive: 'Y',
+      isRepeating: 'false',
+      entityName: 'PO',
+      itemType: 'Sample Item',
+      specialInstructions: 'Handle with care',
+      itemIdentifier: 'ID-12345',
+      batchSize: 10,
+      itemPatterns: 'pattern1, pattern2',
+    },
+    selectors: {
+      pageTitle: 'h3.page-title',
+      addButton: 'button.e-tbar-btn:has-text("Add")',
+      extractorNameInput: 'input#extractorName',
+      extractorNameEditor: '.full-width-inline-editor:has(small:text("Extractor Name")) .e-inplaceeditor',
+      extractorNamePopupInput: '.e-tooltip-wrap.e-popup-open input#extractorName_editor',
+      extractorNameSaveButton: '.e-tooltip-wrap.e-popup-open .e-btn-save',
+      extractorPopupTooltip: '.e-tooltip-wrap.e-popup-open',
+      extractorRowByTitle: (name) => `tr.e-row:has(td[title="${name}"])`,
+      descriptionInput: 'input#description',
+      activeDropdownIcon: 'div.e-control-wrapper .e-ddl-icon',
+      entitiesSection: '.e-acrdn-item:has-text("Entities")',
+      entitiesAccordion: '.e-acrdn-item:has-text("Entities")',
+      entitiesGrid: '.e-acrdn-item:has-text("Entities") .e-grid',
+      entitiesAddButton: '.e-acrdn-item:has-text("Entities") .e-toolbar-item button.e-tbar-btn:has-text("Add")',
+      mainSaveButton: 'button.btn-primary:has-text("Update Extractor")',
+      deleteButton: 'button[id*="delete"]:has-text("Delete")',
+      editButton: 'div.e-toolbar-item[title="Edit"] > button.e-tbar-btn[aria-disabled="false"]',
+      confirmDeletePopup: '.e-confirm-dialog.e-popup-open',
+      confirmDeleteButton: '.e-confirm-dialog.e-popup-open .e-footer-content button.e-primary',
+      successMessage: '.e-alert-dialog.e-popup-open .e-dlg-content',
+      nextPageButton: 'div.e-next[title="Go to next page"]',
+      
+    },
+    timeouts: {
+      pageLoad: 10000,
+      addButtonVisible: 5000,
+      input: 5000,
+      dropdown: 10000,
+      modal: 15000,
+      buttonVisible: 5000,
+      accordionExpand: 2000,
+      saveProcessing: 1000,
+      inlineEditorWait: 2000,
+      editModeActivation: 1000,
+      generalWait: 500,
+      browserPopup: 3000,
+      modalOpen: 5000,
+    }
   },
-  selectors: {
-    pageTitle: 'h3.page-title',
-    addButton: 'button.e-tbar-btn:has-text("Add")',
-    extractorNameInput: 'input#extractorName',
-    extractorNameEditor: '.full-width-inline-editor:has(small:text("Extractor Name")) .e-inplaceeditor',
-    extractorNamePopupInput: '.e-tooltip-wrap.e-popup-open input#extractorName_editor',
-    extractorNameSaveButton: '.e-tooltip-wrap.e-popup-open .e-btn-save',
-    extractorPopupTooltip: '.e-tooltip-wrap.e-popup-open', // For waiting states
-    extractorRowByTitle: (name) => `tr.e-row:has(td[title="${name}"])`, // Dynamic selector
-    descriptionInput: 'input#description',
-    activeDropdownIcon: 'div.e-control-wrapper .e-ddl-icon',
-    entitiesSection: '.e-acrdn-item:has-text("Entities")',
-    entitiesAccordion: '.e-acrdn-item:has-text("Entities")',
-    entitiesGrid: '.e-acrdn-item:has-text("Entities") .e-grid',
-    entitiesAddButton: '.e-acrdn-item:has-text("Entities") .e-toolbar-item button.e-tbar-btn:has-text("Add")',
-    mainSaveButton: 'button.btn-primary:has-text("Update Extractor")',
-    deleteButton: 'button[id*="delete"]:has-text("Delete")',
-    editButton: 'div.e-toolbar-item[title="Edit"] > button.e-tbar-btn[aria-disabled="false"]',
-    confirmDeletePopup: '.e-confirm-dialog.e-popup-open',
-    confirmDeleteButton: '.e-confirm-dialog.e-popup-open .e-footer-content button.e-primary',
-    successMessage: '.e-alert-dialog.e-popup-open .e-dlg-content',
-  },
-  timeouts: {
-    accordionExpand: 2000,
-    addButtonVisible: 5000,
-    navigation: 10000,
-    dropdown: 10000,
-    input: 5000,
-    modal: 15000,
-    pageLoad: 10000,
-    modalOpen: 5000,
-    buttonVisible: 5000,
-    inlineEditorWait: 2000, // For inline editor loading
-    saveProcessing: 1000, // For save operations
-    editModeActivation: 1000, // For edit mode activation
-    generalWait: 500, // For general waits
-    browserPopup: 3000, // For browser alert/confirm dialogs
-  },
-},
   ruleset: {
     baseUrl: 'https://demo.tradingdocs.ai',
     rulesetsPath: '/rulesets',
@@ -161,9 +170,10 @@ module.exports = {
       saveButton: 'button.e-edit-dialog.submit-button',
       successText: 'text=Test Ruleset',
       deleteButton: 'div[title="Delete"] button',
-      deleteConfirmPopup: '#confirmPopup',
-      deleteConfirmOkButton: 'div.e-confirm-dialog.e-popup-open div.e-footer-content button.e-primary:has-text("OK")',
+      deleteConfirmPopup: '.e-dialog.e-popup-open',
+      deleteConfirmOkButton: '.e-dialog.e-popup-open button.e-primary:has-text("OK")',
       tableRow: 'div.e-gridcontent tr.e-row',
+      nextPageButton: 'div.e-next[title="Go to next page"]',
       
       // ✅ RULESET NAME INLINE EDITOR (like updateExtractor pattern)
       rulesetNameEditor: '.full-width-inline-editor:has(small:text("Ruleset Name")) .e-inplaceeditor',

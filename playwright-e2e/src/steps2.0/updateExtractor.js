@@ -1,6 +1,7 @@
 const config = require('./config2.0');
 const navigateAndWait = require('../utils/navigateAndWait');
 const { expect } = require('@playwright/test');
+const { findRowAcrossPages } = require('../utils/paginationHelper');
 
 module.exports = async function updateExtractor(page, extractorName = '') {
   const cfg = config.extractors;
@@ -13,86 +14,58 @@ module.exports = async function updateExtractor(page, extractorName = '') {
 
   try {
     console.log('🚀 Navigating to Extractors page...');
-    await page.goto(cfg.baseUrl);
     await navigateAndWait(page, 'extractors');
-    await page.waitForTimeout(timeouts.generalWait);
 
-    console.log(`🔍 Searching for extractor row with name: "${extractorName}"`);
+    console.log(`🔍 Locating extractor row with name: "${extractorName}"...`);
     const rowSelector = selectors.extractorRowByTitle(extractorName);
-    await page.waitForSelector(rowSelector, { timeout: timeouts.navigation });
-    const row = page.locator(rowSelector);
-
-    const rowCount = await row.count();
-    expect(rowCount).toBeGreaterThan(0);
-    console.log(`✅ Found ${rowCount} extractor row(s)`);
-
-    if (rowCount > 1) {
-      console.log(`⚠️ Multiple rows found, selecting the first one`);
-    }
-
+    const row = await findRowAcrossPages(page, rowSelector, selectors.nextPageButton);
+    await expect(row.first()).toBeVisible({ timeout: timeouts.navigation });
     await row.first().click();
-    await page.waitForTimeout(timeouts.generalWait);
 
-    console.log('✏️ Clicking Edit button in the toolbar for the selected row...');
+    console.log('✏️ Clicking Edit button...');
     const editButton = page.locator(selectors.editButton);
     await expect(editButton).toBeVisible({ timeout: timeouts.input });
-
-    const box = await editButton.boundingBox();
-    if (!box) throw new Error('Edit button is not visible');
-
-    await editButton.hover();
+    await expect(editButton).toBeEnabled({ timeout: 2000 });
     await editButton.click();
 
-    console.log('🎉 Edit button clicked, waiting for edit form to load...');
-    await page.waitForTimeout(timeouts.inlineEditorWait);
-
+    console.log('⏳ Waiting for inline editor...');
     const extractorNameEditor = page.locator(selectors.extractorNameEditor);
     await expect(extractorNameEditor).toBeVisible({ timeout: timeouts.pageLoad });
-    console.log('✅ Extractor name inline editor found');
 
-    console.log('📝 Clicking extractor name editor to activate edit mode...');
+    console.log('📝 Activating name editor...');
     await extractorNameEditor.click();
-    await page.waitForTimeout(timeouts.editModeActivation);
 
     const nameInput = page.locator(selectors.extractorNamePopupInput);
     await expect(nameInput).toBeVisible({ timeout: timeouts.input });
-    console.log('✅ Edit popup appeared with input field');
 
-    console.log(`📝 Updating extractor name to "${data.updatedExtractorName}"...`);
-    await nameInput.fill(''); // clear the field explicitly
+    console.log(`🔁 Changing name to "${data.updatedExtractorName}"...`);
+    await nameInput.fill('');
     await nameInput.fill(data.updatedExtractorName);
     await expect(nameInput).toHaveValue(data.updatedExtractorName);
-    console.log('✅ Extractor name updated');
 
     const inlineSaveButton = page.locator(selectors.extractorNameSaveButton);
-    await expect(inlineSaveButton).toBeVisible();
-    console.log('💾 Clicking inline save button (tick symbol)...');
+    await expect(inlineSaveButton).toBeVisible({ timeout: timeouts.input });
     await inlineSaveButton.click();
 
-    await page.waitForTimeout(timeouts.saveProcessing);
+    console.log('💾 Waiting for tooltip to close...');
     await expect(page.locator(selectors.extractorPopupTooltip)).toHaveCount(0, { timeout: timeouts.input });
-    console.log('✅ Edit popup closed, update complete');
 
-    console.log('💾 Clicking "Update Extractor" button...');
     const mainSaveButton = page.locator(selectors.mainSaveButton);
     await expect(mainSaveButton).toBeVisible({ timeout: timeouts.input });
+    await expect(mainSaveButton).toBeEnabled({ timeout: 2000 });
     await mainSaveButton.click();
-    console.log('✅ Update Extractor button clicked');
+    console.log('✅ Clicked Update Extractor');
 
-    console.log('🔔 Waiting for success popup/alert...');
     page.once('dialog', async dialog => {
-      console.log(`📢 Browser dialog appeared: ${dialog.message()}`);
+      console.log(`📢 Dialog appeared: ${dialog.message()}`);
       await dialog.accept();
-      console.log('✅ Browser dialog accepted');
     });
 
     await page.waitForTimeout(timeouts.saveProcessing * 2);
-    console.log('✅ Main form changes saved successfully');
-
     console.log('🎉 Extractor updated successfully');
 
   } catch (e) {
-    console.error('❌ Error in updateExtractor:', e.message);
+    console.error(`❌ updateExtractor failed: ${e.message}`);
     throw e;
   }
 };

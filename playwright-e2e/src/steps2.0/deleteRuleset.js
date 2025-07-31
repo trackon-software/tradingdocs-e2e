@@ -1,58 +1,60 @@
-const navigateAndWait = require('../utils/navigateAndWait');
 const config = require('./config2.0');
+const navigateAndWait = require('../utils/navigateAndWait');
 const { expect } = require('@playwright/test');
+const { findRowAcrossPages } = require('../utils/paginationHelper');
 
-module.exports = async function deleteRuleset(page, rulesetName = '') {
+module.exports = async function deleteRuleset(page, rulesetName) {
   const cfg = config.ruleset;
   const { selectors, timeouts, rulesetData } = cfg;
+  const nextPage = selectors.nextPageButton;
 
-  // Use the updated name if no specific name provided
-  if (!rulesetName) {
-    rulesetName = rulesetData.updatedRulesetName; // ✅ FIXED: Look for "Updated Ruleset"
-    console.log(`⚠️ No rulesetName provided, using updated name: ${rulesetName}`);
+  // Use updated name by default
+  rulesetName = rulesetName || rulesetData.updatedRulesetName;
+
+  try {
+    console.log('🚀 Navigating to Rulesets page');
+    await navigateAndWait(page, 'ruleset');
+    await page.waitForLoadState('networkidle');
+
+    console.log(`🔍 Searching for ruleset named "${rulesetName}" across pages...`);
+    const rowSelector = selectors.rulesetRowByTitle(rulesetName);
+    const row = await findRowAcrossPages(page, rowSelector, nextPage, 10);
+    await row.scrollIntoViewIfNeeded();
+    await row.click();
+    console.log('✅ Ruleset row selected');
+
+    const deleteBtn = page.locator(selectors.deleteButton);
+    await expect(deleteBtn).toBeVisible({ timeout: timeouts.buttonVisible });
+    await deleteBtn.click();
+    console.log('🗑️ Delete button clicked');
+
+    const popup = page.locator(selectors.deleteConfirmPopup);
+    await expect(popup).toBeVisible({ timeout: timeouts.successVisible });
+    console.log('✅ Confirmation popup appeared');
+
+    const confirmBtn = page.locator(selectors.deleteConfirmOkButton);
+    await expect(confirmBtn).toBeVisible({ timeout: timeouts.buttonVisible });
+    await confirmBtn.click();
+    console.log('✅ Delete confirmed');
+
+    const successPopup = page.locator('div.e-alert-dialog.e-popup-open');
+    try {
+      await successPopup.waitFor({ state: 'visible', timeout: 2000 });
+      console.log('🎉 Success popup appeared');
+    } catch {
+      console.log('ℹ️ No success popup — relying on row disappearance');
+    }
+
+    console.log('⏳ Waiting for delete operation to complete...');
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1000);
+
+    const deletedRow = page.locator(rowSelector);
+    await expect(deletedRow).toHaveCount(0, { timeout: timeouts.successVisible });
+    console.log(`🎉 Ruleset "${rulesetName}" deleted successfully`);
+
+  } catch (e) {
+    console.error('❌ deleteRuleset failed:', e.message);
+    throw e;
   }
-
-  console.log('🚀 Navigating to Rulesets page');
-  await navigateAndWait(page, 'ruleset');
-
-  console.log(`🔍 Searching for ruleset named "${rulesetName}"`);
-  const row = page.locator(selectors.tableRow, { hasText: rulesetName }).first();
-  
-  // Assert the ruleset row exists and is visible
-  await expect(row).toBeVisible({ timeout: timeouts.pageLoad });
-  await row.scrollIntoViewIfNeeded();
-  await row.click();
-  console.log('✅ Ruleset row found and selected');
-
-  console.log('🗑️ Clicking Delete button');
-  const deleteButton = page.locator(selectors.deleteButton);
-  
-  // Assert delete button is visible and click it
-  await expect(deleteButton).toBeVisible({ timeout: timeouts.selector });
-  await deleteButton.click();
-  console.log('✅ Delete button clicked');
-
-  console.log('⏳ Waiting for confirmation popup...');
-  const confirmPopup = page.locator('div.e-confirm-dialog.e-popup-open');
-  
-  // Assert confirmation popup appears
-  await expect(confirmPopup).toBeVisible({ timeout: timeouts.pageLoad });
-  console.log('✅ Confirmation popup appeared');
-
-  console.log('☑️ Confirming delete');
-  const confirmOkButton = page.locator('div.e-confirm-dialog.e-popup-open div.e-footer-content button.e-primary:has-text("OK")');
-  
-  // Assert OK button is visible and click it
-  await expect(confirmOkButton).toBeVisible({ timeout: timeouts.selector });
-  await confirmOkButton.click();
-  console.log('✅ Delete confirmed');
-
-  // ✅ FIXED: Remove the dialog handling completely from deleteRuleset
-  // The delete confirmation is handled by clicking the OK button, not browser dialog
-  console.log('⏳ Waiting for delete operation to complete...');
-  await page.waitForTimeout(timeouts.saveProcessing * 2); // Wait for delete to process
-
-  // Assert successful deletion by checking that the row disappears
-  await expect(row).not.toBeAttached({ timeout: timeouts.pageLoad });
-  console.log(`🎉 Ruleset "${rulesetName}" deleted successfully`);
 };

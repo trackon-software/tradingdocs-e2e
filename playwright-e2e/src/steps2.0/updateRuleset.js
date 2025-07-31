@@ -1,121 +1,72 @@
 const config = require('./config2.0');
 const navigateAndWait = require('../utils/navigateAndWait');
+const { expect } = require('@playwright/test');
+const { findRowAcrossPages } = require('../utils/paginationHelper');
 
-module.exports = async function updateRuleset(page, rulesetName = '') {
+module.exports = async function updateRuleset(page, updatedName) {
   const cfg = config.ruleset;
-  const { selectors, timeouts, rulesetData } = cfg;
+  const { selectors, rulesetData, timeouts } = cfg;
+  const nextPage = selectors.nextPageButton;
 
-  if (!rulesetName) {
-    rulesetName = rulesetData.rulesetName;
-    console.log(`⚠️ No rulesetName provided, using default: ${rulesetName}`);
-  }
+  if (!updatedName) updatedName = rulesetData.updatedRulesetName;
 
   try {
     console.log('🚀 Navigating to Rulesets page...');
     await navigateAndWait(page, 'ruleset');
-    await page.waitForSelector(selectors.pageTitle, { timeout: timeouts.pageLoad });
-    console.log('✅ Rulesets page loaded');
+    await page.waitForLoadState('networkidle');
 
-    console.log(`🔍 Searching for ruleset row with name: "${rulesetName}"`);
-    const rowSelector = selectors.rulesetRowByTitle(rulesetName);
-    await page.waitForSelector(rowSelector, { timeout: timeouts.navigation });
-    const row = page.locator(rowSelector);
+    console.log(`🔍 Searching for ruleset row with name: "${rulesetData.rulesetName}"`);
+    const rowSelector = selectors.rulesetRowByTitle(rulesetData.rulesetName);
+    const row = await findRowAcrossPages(page, rowSelector, nextPage, 10);
+    await row.click();
+    console.log('✅ Ruleset row found and clicked');
 
-    const rowCount = await row.count();
-    if (rowCount > 1) {
-      console.log(`⚠️ Found ${rowCount} rulesets with name "${rulesetName}", selecting the first one`);
-    }
-
-    console.log('✅ Ruleset row found, clicking it...');
-    await row.first().click();
-    await page.waitForTimeout(timeouts.generalWait);
-
-    console.log('✏️ Clicking Edit button in the toolbar...');
-    const editButton = page.locator(selectors.editButton);
-    await editButton.waitFor({ state: 'visible', timeout: timeouts.inputVisible });
-
-    const box = await editButton.boundingBox();
-    if (!box) throw new Error('❌ Edit button is not visible');
-
-    await editButton.hover();
-    await editButton.click();
+    console.log('✏️ Clicking Edit button...');
+    const editBtn = page.locator(selectors.editButton);
+    await expect(editBtn).toBeVisible({ timeout: timeouts.buttonVisible });
+    await editBtn.click();
     console.log('✅ Edit button clicked');
 
-    await page.waitForTimeout(timeouts.inlineEditorWait);
+    const inlineEditor = page.locator(selectors.rulesetNameEditor);
+    await page.waitForTimeout(300); // DOM settle
+    await expect(inlineEditor).toBeVisible({ timeout: timeouts.inputVisible });
+    console.log('✅ Inline name editor visible');
 
-    const rulesetNameEditor = page.locator(selectors.rulesetNameEditor);
-    await rulesetNameEditor.waitFor({ state: 'visible', timeout: timeouts.pageLoad });
-    console.log('✅ Ruleset name inline editor found');
+    console.log('📝 Clicking to activate name editor...');
+    await inlineEditor.click();
 
-    console.log('📝 Clicking inline editor to activate edit mode...');
-    await rulesetNameEditor.click();
-    await page.waitForTimeout(timeouts.editModeActivation);
+    const inputSelector = selectors.rulesetNamePopupInput;
+    const inputField = page.locator(inputSelector);
+    await expect(inputField).toBeVisible({ timeout: timeouts.inputVisible });
 
-    await page.waitForSelector(selectors.rulesetNamePopupInput, { timeout: timeouts.inputVisible });
-    const nameInput = page.locator(selectors.rulesetNamePopupInput);
-    console.log('✅ Edit popup appeared');
+    console.log(`✍️ Updating ruleset name to "${updatedName}"`);
+    await inputField.fill(updatedName);
+    await expect(inputField).toHaveValue(updatedName);
 
-    console.log(`📝 Updating ruleset name to "${rulesetData.updatedRulesetName}"...`);
-    await nameInput.clear();
-    await nameInput.fill(rulesetData.updatedRulesetName);
-    console.log('✅ Ruleset name filled');
+    const inlineSave = page.locator(selectors.rulesetNameSaveButton);
+    await inlineSave.click();
+    console.log('💾 Inline Save clicked');
 
-    const inlineSaveButton = page.locator(selectors.rulesetNameSaveButton);
-    console.log('💾 Clicking inline save button...');
-    await inlineSaveButton.click();
-    await page.waitForTimeout(timeouts.saveProcessing);
-    console.log('✅ Inline save clicked');
-
-    await page.waitForSelector(selectors.rulesetPopupTooltip, { state: 'hidden', timeout: timeouts.inputVisible });
+    await expect(page.locator(selectors.rulesetPopupTooltip)).toHaveCount(0, { timeout: timeouts.saveProcessing });
     console.log('✅ Edit popup closed');
 
-    console.log('💾 Clicking "Update Ruleset" button...');
-    const mainSaveButton = page.locator(selectors.updateButton);
-    await mainSaveButton.waitFor({ state: 'visible', timeout: timeouts.inputVisible });
-    await mainSaveButton.click();
+    const updateBtn = page.locator(selectors.updateButton);
+    await expect(updateBtn).toBeVisible({ timeout: timeouts.buttonVisible });
+    await updateBtn.click();
     console.log('✅ Update button clicked');
 
-    console.log('🔔 Waiting for browser dialog...');
-    let dialogHandled = false;
-    const dialogHandler = async (dialog) => {
-      if (dialogHandled) return;
-      dialogHandled = true;
-      console.log(`📢 Browser dialog appeared: ${dialog.message()}`);
-      try {
-        await dialog.accept();
-        console.log('✅ Dialog accepted');
-      } catch (error) {
-        console.log('⚠️ Dialog error:', error.message);
-      }
-      page.off('dialog', dialogHandler);
-    };
-    page.on('dialog', dialogHandler);
+    await page.waitForLoadState('networkidle');
 
-    await page.waitForTimeout(timeouts.saveProcessing * 3);
-    try {
-      page.off('dialog', dialogHandler);
-    } catch (_) {}
-
-    console.log('✅ Ruleset changes saved');
-
-    // ✅ Assertion: Verify update
-    console.log(`🔍 Verifying updated ruleset name: "${rulesetData.updatedRulesetName}"`);
+    console.log(`🔍 Verifying updated ruleset name: "${updatedName}"`);
     await navigateAndWait(page, 'ruleset');
-    await page.waitForSelector(selectors.pageTitle, { timeout: timeouts.pageLoad });
+    await page.waitForLoadState('networkidle');
 
-    const updatedRowSelector = selectors.rulesetRowByTitle(rulesetData.updatedRulesetName);
-    const updatedRow = page.locator(updatedRowSelector);
-    await updatedRow.waitFor({ state: 'visible', timeout: timeouts.navigation });
+    const updatedRowSelector = selectors.rulesetRowByTitle(updatedName);
+    await findRowAcrossPages(page, updatedRowSelector, nextPage, 10);
+    console.log(`✅ Updated ruleset "${updatedName}" found in table`);
 
-    const isVisible = await updatedRow.isVisible();
-    if (!isVisible) {
-      throw new Error(`❌ Updated ruleset "${rulesetData.updatedRulesetName}" not found`);
-    }
-    console.log(`✅ Updated ruleset "${rulesetData.updatedRulesetName}" is present in the list`);
-
-    console.log('🎉 Ruleset update test completed successfully');
-  } catch (error) {
-    console.error('❌ updateRuleset error:', error);
-    throw error;
+  } catch (e) {
+    console.error('❌ updateRuleset error:', e.message);
+    throw e;
   }
 };

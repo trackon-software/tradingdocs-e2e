@@ -1,138 +1,112 @@
 const { popoverHandler } = require('../utils/popoverHandler');
 const navigateAndWait = require('../utils/navigateAndWait');
 const config = require('./config2.0');
+const { expect } = require('@playwright/test');
+const { findRowAcrossPages } = require('../utils/paginationHelper');
 
 module.exports = async function updateShipment(page, newBLNumber) {
   const cfg = config.shipment;
-  const { selectors, timeouts, data } = cfg;
+  const { selectors, timeouts, data, rowSelectors } = cfg;
 
-  // Check newBLNumber parameter and set default
-  if (!newBLNumber) {
-    newBLNumber = data.newBLNumber || 'BL654321'; // take from config or use default
-    console.log(`⚠️ No newBLNumber provided, using default: ${newBLNumber}`);
-  }
-
-  // String type check
-  if (typeof newBLNumber !== 'string') {
-    newBLNumber = String(newBLNumber);
-    console.log(`⚠️ newBLNumber converted to string: ${newBLNumber}`);
-  }
+  const shipmentId = data.shipmentId;
+  const finalBL = newBLNumber || data.newBLNumber || 'BL654321';
 
   try {
     console.log('🚀 Navigating to Shipments page...');
     await navigateAndWait(page, 'shipment');
-    await page.waitForTimeout(1000);
 
-    console.log(`🔍 Searching for shipment with ID: ${data.shipmentId}...`);
-    const rowSelector = `tr.e-row:has(td[title="${data.shipmentId}"])`;
-    await page.waitForSelector(rowSelector, { timeout: timeouts.pageLoad });
-    await page.waitForTimeout(1000);
-    console.log('✅ Shipment row found');
+    console.log(`🔍 Searching for shipment ID: ${shipmentId} across pages...`);
+    const row = await findRowAcrossPages(page, rowSelectors.byBL(shipmentId), selectors.nextPageButton, 10);
+    await row.click();
+    console.log('🟡 Shipment row clicked');
 
-    await page.click(rowSelector);
-    console.log('🟡 Shipment row clicked (selected)');
-    await page.waitForTimeout(1000);
+    const selectedBlCell = page.locator(rowSelectors.byShipmentIdInColumn(shipmentId));
+    await expect(selectedBlCell).toBeVisible({ timeout: timeouts.inputVisible });
 
-    await page.waitForSelector(selectors.editButton, { timeout: timeouts.buttonVisible });
-    await page.click(selectors.editButton);
+    const editButton = page.locator(selectors.editButton);
+    await expect(editButton).toBeVisible({ timeout: timeouts.buttonVisible });
+    await editButton.click();
     console.log('✏️ Edit button clicked');
-    await page.waitForTimeout(1000);
 
     await popoverHandler(page);
-    await page.waitForTimeout(1000);
 
     console.log('➡️ Navigating to General Info tab...');
-    await page.click('li.nav-item > a[data-bs-target="#general"]');
-    await page.waitForSelector('#general.active', { timeout: timeouts.pageLoad });
-    await page.waitForTimeout(1000);
-    console.log('✅ General Info tab is active');
+    await page.click(selectors.generalTabButton);
+    await expect(page.locator('#general.active')).toBeVisible({ timeout: timeouts.pageLoad });
+    console.log('✅ General Info tab active');
 
     await popoverHandler(page);
-    await page.waitForTimeout(1000);
 
-    const blInlineSelector = 'div[name="blNumber"].inline';
-    await page.click(blInlineSelector);
-    console.log('✏️ BL Number inline editor clicked, waiting for modal...');
-    await page.waitForTimeout(1000);
+    const blInline = page.locator('div[name="blNumber"].inline');
+    await blInline.click();
+    console.log('✏️ Clicked BL Number inline editor');
 
-    const modalSelector = 'div.e-dialog.e-popup-open';
-    await page.waitForSelector(modalSelector, { state: 'visible', timeout: timeouts.modalOpen });
-    console.log('✅ BL Number edit modal is visible');
-    await page.waitForTimeout(1000);
+    const modal = page.locator(selectors.modal);
+    await expect(modal).toBeVisible({ timeout: timeouts.modalOpen });
 
-    // Find and clear input field
-    const blInputSelector = 'input#blNumber';
-    await page.waitForSelector(blInputSelector, { state: 'visible', timeout: 5000 });
-    
-    // Clear current value
-    await page.click(blInputSelector);
-    await page.keyboard.press('Control+A'); // Select all
-    await page.keyboard.press('Delete'); // Delete
-    await page.waitForTimeout(500);
-    
-    // Enter new value
-    console.log(`✍️ Entering new BL Number: "${newBLNumber}"`);
-    await page.fill(blInputSelector, newBLNumber);
-    
-    // Verify value entered correctly
-    const enteredValue = await page.inputValue(blInputSelector);
-    console.log(`✅ BL Number updated to: "${enteredValue}"`);
-    
-    if (enteredValue !== newBLNumber) {
-      console.warn(`⚠️ Warning: Expected "${newBLNumber}" but got "${enteredValue}"`);
-    }
-    
-    await page.waitForTimeout(1000);
+    const blInput = modal.locator(selectors.blNumberInput);
+    await expect(blInput).toBeVisible({ timeout: timeouts.inputVisible });
 
-    const modalSaveSelector = 'div.e-footer-content button.e-primary';
-    await page.waitForSelector(modalSaveSelector, { state: 'visible', timeout: 5000 });
-    await page.click(modalSaveSelector);
-    console.log('💾 Modal save button clicked');
-    await page.waitForTimeout(1000);
+    await blInput.click();
+    await page.keyboard.press('Control+A');
+    await page.keyboard.press('Delete');
+    await blInput.fill(finalBL);
+    await expect(blInput).toHaveValue(finalBL);
+    console.log(`✍️ Updated BL Number to "${finalBL}"`);
 
-    await page.waitForSelector(modalSelector, { state: 'hidden', timeout: timeouts.modalClose });
+    const modalSave = modal.locator(selectors.modalSaveButton);
+    await expect(modalSave).toBeVisible({ timeout: 5000 });
+    await modalSave.click();
+    console.log('💾 Clicked Save on modal');
+
+    await expect(modal).toHaveCount(0, { timeout: timeouts.modalClose });
     console.log('✅ Modal closed');
-    await page.waitForTimeout(1000);
 
-    await page.waitForSelector(selectors.updateButton, { state: 'visible', timeout: timeouts.buttonVisible });
-    await page.click(selectors.updateButton);
-    console.log('➡️ Update button clicked');
-    await page.waitForTimeout(1000);
+    const updateBtn = page.locator(selectors.updateButton);
+    await expect(updateBtn).toBeVisible({ timeout: timeouts.buttonVisible });
+    await updateBtn.click();
+    console.log('🚀 Clicked Update');
 
-    if (selectors.shipmentSavedPopupSelector) {
-      await page.waitForSelector(selectors.shipmentSavedPopupSelector, { timeout: timeouts.shipmentSavedPopupTimeout });
-      
-      // Click OK button on success popup
+    try {
+      const popup = page.locator(selectors.shipmentSavedPopupSelector);
+      await expect(popup).toBeVisible({ timeout: timeouts.shipmentSavedPopupTimeout });
+
       if (selectors.shipmentSavedPopupOkButtonSelector) {
         await page.click(selectors.shipmentSavedPopupOkButtonSelector);
-        console.log('👍 Success popup OK button clicked');
+        console.log('👍 Clicked OK on success popup');
       }
-      
-      console.log('🎉 Shipment updated successfully');
+
+      console.log('🎉 Update confirmed via popup');
+    } catch {
+      console.warn('⚠️ Popup not detected, continuing...');
     }
 
-  } catch (e) {
-    console.error('❌ Error in updateShipment:', e.message);
-    console.error('Stack trace:', e.stack);
-    
-    // Debug info
+    // Final verification
+    console.log('🔍 Verifying updated BL Number...');
+    await navigateAndWait(page, 'shipment');
+    const finalRow = await findRowAcrossPages(page, rowSelectors.byBL(shipmentId), selectors.nextPageButton, 10);
+    await expect(finalRow).toContainText(finalBL);
+    console.log('✅ BL update verified in table');
+
+  } catch (err) {
+    console.error('❌ Error in updateShipment:', err.message);
+
     try {
-      const currentUrl = page.url();
-      console.log(`🔍 Current URL: ${currentUrl}`);
-      
-      // Check if modal is open
-      const modalOpen = await page.$('div.e-dialog.e-popup-open');
-      console.log(`🔍 Modal open: ${!!modalOpen}`);
-      
+      const ts = Date.now();
+      await page.screenshot({ path: `update-failure-${ts}.png`, fullPage: true });
+
+      const currentUrl = await page.url();
+      console.log(`📍 URL at error: ${currentUrl}`);
+
+      const modalOpen = await page.$(selectors.modal);
       if (modalOpen) {
-        // Try to close modal
         await page.keyboard.press('Escape');
-        console.log('🔄 Attempted to close modal with Escape');
+        console.log('🔄 Closed modal with Escape');
       }
-    } catch (debugError) {
-      console.log('🔍 Debug info collection failed');
+    } catch (debugErr) {
+      console.warn('⚠️ Failed to collect debug info');
     }
-    
-    throw e; // Rethrow error
+
+    throw err;
   }
 };
