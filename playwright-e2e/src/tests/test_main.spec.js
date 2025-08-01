@@ -2,36 +2,69 @@ const { test, expect } = require('@playwright/test');
 const fs = require('fs');
 const path = require('path');
 
-// Paths for log files
+// Format current timestamp in Dubai time
+const getDubaiTime = () => {
+  return new Date().toLocaleString('en-GB', {
+    timeZone: 'Asia/Dubai',
+    hour12: false
+  }).replace(',', '').replace(/[:/]/g, '-').replace(/\s/g, '_');
+};
+
+const timestampForFilename = getDubaiTime();
+
+// Define output paths
 const testResultsDir = path.join(__dirname, '../test-results');
-const testRunLogPath = path.join(testResultsDir, 'test_run.log');
-const failedStepsLogPath = path.join(testResultsDir, 'failed_steps.log');
-const failureJsonPath = path.join(testResultsDir, 'failure_summary.json');
 const screenshotsDir = path.join(testResultsDir, 'screenshots');
 
-// Ensure test-results and screenshots dir exist
-if (!fs.existsSync(screenshotsDir)) fs.mkdirSync(screenshotsDir, { recursive: true });
+if (!fs.existsSync(testResultsDir)) fs.mkdirSync(testResultsDir);
+if (!fs.existsSync(screenshotsDir)) fs.mkdirSync(screenshotsDir);
 
-// Logging setup
+// Define filenames with timestamp
+const testRunLogPath = path.join(testResultsDir, `test_run_${timestampForFilename}.log`);
+const failedStepsLogPath = path.join(testResultsDir, `failed_steps_${timestampForFilename}.log`);
+const failureJsonPath = path.join(testResultsDir, `failure_summary_${timestampForFilename}.json`);
+
+// Open test_run log stream
 const logFile = fs.createWriteStream(testRunLogPath, { flags: 'a' });
+
+// Timestamp prefix
+const nowDubai = () =>
+  `[⏱ ${new Date().toLocaleString('en-GB', {
+    timeZone: 'Asia/Dubai',
+    hour12: false
+  }).replace(',', '')}]`;
+
+// Custom logger overrides
 const originalLog = console.log;
 const originalError = console.error;
-console.log = (...args) => { originalLog(...args); logFile.write(args.join(' ') + '\n'); };
-console.error = (...args) => { originalError(...args); logFile.write('[ERROR] ' + args.join(' ') + '\n'); };
 
-// Failure summary
+console.log = (...args) => {
+  const message = `${nowDubai()} [INFO] ${args.join(' ')}`;
+  originalLog(message);
+  logFile.write(message + '\n');
+};
+
+console.error = (...args) => {
+  const message = `${nowDubai()} [ERROR] ${args.join(' ')}`;
+  originalError(message);
+  logFile.write(message + '\n');
+};
+
+// Write failure logs
 function logFailureSummary(failedSteps) {
   const log = `🧨 Test Failures:\n${failedSteps.join('\n\n')}\n`;
   fs.writeFileSync(failedStepsLogPath, log, 'utf-8');
   console.error(log);
 }
+
+// Write failure JSON
 function writeFailureJson(failedSteps) {
   const structured = {
     status: 'failed',
     summary: {
       total: failedSteps.length,
       passed: 0,
-      failed: failedSteps.length
+      failed: failedSteps.length,
     },
     failedTests: failedSteps.map((msg, idx) => {
       const match = msg.match(/❌ (\w+) failed:/);
@@ -43,14 +76,14 @@ function writeFailureJson(failedSteps) {
         description: msg.split('\n')[0],
         error: 'Stack:\n' + msg.split('Stack:\n')[1]?.split('\nScreenshot')[0],
         screenshot,
-        logFile: 'test_run.log'
+        logFile: path.basename(testRunLogPath),
       };
-    })
+    }),
   };
   fs.writeFileSync(failureJsonPath, JSON.stringify(structured, null, 2), 'utf-8');
 }
 
-// Imports
+// Import all steps
 const login = require('../steps/login');
 const addShipment = require('../steps2.0/addShipment');
 const updateShipment = require('../steps2.0/updateShipment');
@@ -64,7 +97,7 @@ const deleteRuleset = require('../steps2.0/deleteRuleset');
 const definitionsTest = require('../steps2.0/definitionsTest');
 const entityBuilder = require('../steps2.0/entityBuilder');
 
-test.setTimeout(300000); // 5 min
+test.setTimeout(300000); // 5 minutes
 
 test.describe('E2E Test Suite', () => {
   test('Simple E2E Test Flow', async ({ page }) => {
@@ -72,32 +105,40 @@ test.describe('E2E Test Suite', () => {
 
     const runStep = async (name, fn) => {
       try {
-        console.log(`➡️ Running ${name}...`);
+        console.log(`[STEP] Running ${name}...`);
         await fn();
-        console.log(`✅ ${name} completed\n`);
+        console.log(`[SUCCESS] ${name} completed`);
       } catch (error) {
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-        const screenshotPath = path.join(screenshotsDir, `${name}_${timestamp}.png`);
+        const timeForFile = new Date().toISOString().replace(/[:.]/g, '-');
+        const screenshotPath = path.join(screenshotsDir, `${name}_${timeForFile}.png`);
+
         try {
           await page.screenshot({ path: screenshotPath, fullPage: true });
-          console.log(`📸 Screenshot saved: ${screenshotPath}`);
-        } catch (err) {
-          console.error('⚠️ Screenshot failed:', err);
+          console.log(`[SCREENSHOT] Saved at: ${screenshotPath}`);
+        } catch (screenshotError) {
+          console.error('⚠️ Failed to capture screenshot:', screenshotError);
         }
+
         const errorMsg = `❌ ${name} failed: ${error.message}\nStack:\n${error.stack}\nScreenshot: ${screenshotPath}`;
         console.error(errorMsg);
         failedSteps.push(errorMsg);
       }
     };
 
-    // General setup
     await page.setViewportSize({ width: 1920, height: 1080 });
-    page.on('console', msg => msg.type() === 'error' && console.log(`🐛 Browser Console Error: ${msg.text()}`));
-    page.on('pageerror', error => console.log(`🐛 Page Error: ${error.message}`));
+
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        console.log(`[BrowserConsole] ${msg.text()}`);
+      }
+    });
+
+    page.on('pageerror', (err) => {
+      console.log(`[PageError] ${err.message}`);
+    });
 
     console.log('🚀 Starting test suite...\n');
 
-    // Test steps
     await runStep('login', () => login(page));
     await runStep('addExtractor', () => addExtractor(page));
     await runStep('updateExtractor', () => updateExtractor(page));
@@ -114,10 +155,9 @@ test.describe('E2E Test Suite', () => {
     if (failedSteps.length > 0) {
       logFailureSummary(failedSteps);
       writeFailureJson(failedSteps);
+      throw new Error('❗ Some steps failed. See the latest test-results/ files for details.');
+    } else {
+      console.log('🎉 All tests completed successfully!');
     }
-
-    // ✅ Playwright assertion to fail test officially for CI/CD
-    expect(failedSteps.length, 'Some test steps failed').toBe(0);
-    console.log('🎉 All tests completed successfully!');
   });
 });
