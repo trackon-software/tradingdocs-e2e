@@ -272,7 +272,7 @@ module.exports = {
     },
     selectors: {
       pageTitle: 'h1',
-      dataTable: 'table',
+      dataTable: 'table[id^="grid_"][id$="_content_table"]',
       tableRows: 'table tbody tr',
       errorMessage: '.error-message',
       loadingIndicator: '.loading-indicator'
@@ -281,13 +281,13 @@ module.exports = {
       {
         name: 'Agent_usage',
         selector: '#_AGENT_USAGE',
-        url: '/agent-usage',
+        url: '/agent_usage',
         expectedTitle: 'Agent Usage'
       },
       {
         name: 'Child_document',
         selector: '#_CHILD_DOCUMENT',
-        url: '/child-document',
+        url: '/child_document',
         expectedTitle: 'Child Document'
       },
       {
