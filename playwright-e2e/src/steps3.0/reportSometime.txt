@@ -1,0 +1,52 @@
+Backend Discrepancy: Orphaned Shipment Data (Test-001)
+
+🧩 Summary
+
+Even after deleting a shipment entry (e.g., Test-001) from the Shipment Table UI, the associated data such as:
+
+Document uploads
+
+Discrepancy logs
+
+Capture history
+
+...still persist in the backend.
+
+This creates a situation where:
+
+Navigating to /shipment/Test-001 still works.
+
+Capture actions accumulate discrepancies on a logically "deleted" entity.
+
+Discrepancies retrieved for Test-001 include both old and new violations, polluting the dataset.
+
+🛠 Impact on E2E Testing
+
+E2E tests always reuse Test-001 due to hardcoded pathing.
+
+Even if the frontend looks "clean," data snowballs in the backend.
+
+This makes it impossible to run clean test cycles unless the backend is wiped.
+
+🔍 Recommendation for Backend
+
+When a shipment is deleted from the table, ensure:
+
+Related files are disassociated or removed.
+
+Discrepancy records and capture history are purged.
+
+The /shipment/{ID} route becomes inaccessible.
+
+📌 Temporary Workaround in E2E
+
+Tests operate under the assumption that Test-001 persists.
+
+Pagination is ignored: only the first page of discrepancies is checked.
+
+A stable .waitForSelector('table tbody tr') + count logic is used.
+
+Developers must manually reset or isolate Test-001 until backend fixes are applied.
+
+Status: Known Issue — Blocking backend fix needed for test repeatability and data hygiene.
+

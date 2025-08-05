@@ -2,6 +2,7 @@ async function selectDropdownOption(scope, iconSelector, optionText, options = {
   const openTimeout = options.openTimeout || 8000;
   const optionTimeout = options.optionTimeout || 8000;
   const popupSelector = options.popupSelector || '.e-popup-open ul.e-ul';
+  const direct = options.direct || false;
 
   const isPage = !!scope.waitForSelector;
 
@@ -19,6 +20,23 @@ async function selectDropdownOption(scope, iconSelector, optionText, options = {
     isPage ? scope.locator(selector) : scope.locator(selector);
 
   try {
+    if (direct) {
+      const idSelector = iconSelector.split('~')[0].trim(); // '#isRepeating'
+      const inputSelector = `input${idSelector}`;
+      const optionSelector = `.e-popup-open .e-list-item:has-text("${optionText}")`;
+
+      console.log(`🎯 [direct] Clicking input: ${inputSelector}`);
+      await waitFor(inputSelector, 'visible', openTimeout);
+      await click(inputSelector);
+
+      console.log(`⏳ Waiting for direct dropdown item: ${optionSelector}`);
+      await waitFor(optionSelector, 'visible', optionTimeout);
+      await click(optionSelector);
+
+      console.log(`✅ [direct] Selected option: ${optionText}`);
+      return;
+    }
+
     console.log(`🔽 Opening dropdown with selector: ${iconSelector}`);
     await waitFor(iconSelector, 'visible', openTimeout);
     await scope.waitForTimeout?.(500); // Only works on Page

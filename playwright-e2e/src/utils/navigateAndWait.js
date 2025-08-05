@@ -1,4 +1,4 @@
-const config = require('../steps2.0/config2.0');
+const config = require('../steps3.0/config3.0');
 
 module.exports = async function navigateAndWait(page, sectionKey) {
   const section = config[sectionKey];

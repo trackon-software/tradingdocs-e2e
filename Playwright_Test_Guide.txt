@@ -1,0 +1,71 @@
+Playwright E2E Test Suite — Developer Guide (Simplified)
+=========================================================
+
+📅 Last updated: 2025-08-05 09:43:13
+
+This guide is for developers who are setting up and running the Playwright end-to-end (E2E) test project.
+
+📁 Folder Structure (expected)
+------------------------------
+
+Example structure:
+
+src/
+├── steps3.0/                  --> contains all modular test flows (addShipment, captureDocument, etc.)
+├── steps2.0/                  --> contains the overall website function test scripts.
+├── steps/                     --> contains the first version of the scripts.
+├── tests/                     --> contains main test runner (test_main.spec.js)
+├── utils/                     --> helper functions like dropdownHandler.js, popoverHandler.js
+├── test-results/              --> stores screenshots and logs from Playwright
+├── .env                       --> stores your login credentials (must be created manually)
+├── Sample Purchase Order.pdf  --> test document used for uploadFile.js
+├── config3.0.js               --> global test configuration file (This is still inside steps3.0 folder. every steps folder has it's config file inside.)
+
+✅ Required Tools & Setup
+--------------------------
+1. Install [Node.js](https://nodejs.org) (v16 or higher recommended)
+2. In terminal:
+   > npm install
+   > npx playwright install
+
+🔐 .env Setup
+--------------
+Create a file called `.env` inside the `src/` directory.
+Contents should be:
+
+USER_EMAIL=your.email@example.com
+USER_PASSWORD=your_secure_password
+
+📤 Upload File Requirement
+---------------------------
+The test `uploadFile.js` expects a sample document to upload:
+Place the sample file (e.g., `Sample Purchase Order-1752667727464.pdf`) into the `src/` folder.
+
+🧪 Running Tests
+----------------
+Run the full suite:
+
+> npx playwright test --headed --reporter=list
+
+To run headless:
+
+> npx playwright test --reporter=list
+
+📌 Notes
+--------
+- Strong `expect()` assertions are used throughout the scripts.
+- Screenshots are saved inside `src/test-results/screenshots/`.
+- `captureDocument.js` is known to be fragile and may need manual retry/debug.
+- No dropdownHandler is used in the current `captureDocument.js`.
+- The report file `reportSometime.txt` contains debug output and can be useful.
+
+📎 Summary
+----------
+✔ Config: `src/steps3.0/config3.0.js`
+✔ Steps:   `src/steps3.0/`
+✔ Runner:  `src/tests/test_main.spec.js`
+✔ .env:    Place inside `src/`
+✔ PDF:     Place inside `src/`
+✔ Run:     `npx playwright test`
+
+Written by chatgpt.

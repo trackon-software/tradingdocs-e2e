@@ -1,58 +1,51 @@
-const config = require('./config2.0');
+const config = require('../steps2.0/config2.0');
 const { selectDropdownOption } = require('../utils/dropdownHandler');
 
-async function fillModalForm(page) {
-  const { data, selectors, timeouts } = config.extractors;
+/**
+ * Fill modal form inside the Add Entity modal for Extractor.
+ * Accepts either a Playwright `page` or a specific modal form `locator`.
+ */
+async function fillModalForm(scope) {
+  const { data, timeouts } = config.extractors;
 
-  // Modal form locator (depending on form ID)
-  const modalForm = page.locator('form#grid_1781639624_2EditForm');
+  const isPage = !!scope.waitForSelector;
+  const modalForm = isPage
+    ? scope.locator('.e-dialog.e-popup-open form.e-formvalidator')
+    : scope;
 
-  // Check if Modal is visible
+  await modalForm.waitFor({ state: 'attached', timeout: timeouts.modal });
   await modalForm.waitFor({ state: 'visible', timeout: timeouts.modal });
-
   console.log('📦 Modal form is visible');
 
-  // Fill Input: input#itemType
-  await modalForm.locator('input#itemType').fill(data.itemType || '');
-  console.log(`✍️ Filled Item Type: ${data.itemType || ''}`);
+  const fillInput = async (selector, value) => {
+    const input = modalForm.locator(selector);
+    await input.waitFor({ state: 'visible', timeout: 3000 });
+    await input.fill(value ?? '');
+    console.log(`✍️ Filled ${selector} → ${value}`);
+  };
 
-  // Dropdown: Is Repeating
-  await selectDropdownOption(
-    modalForm,
-    'div#isRepeating .e-input-group-icon.e-ddl-icon',
-    data.isRepeating,
-    { openTimeout: timeouts.dropdown, optionTimeout: timeouts.dropdown }
-  );
+  await fillInput('input#itemType', data.itemType);
 
-  // Dropdown: Entity Name
-  await selectDropdownOption(
-    modalForm,
-    'div#entityName .e-input-group-icon.e-ddl-icon',
-    data.entityName,
-    { openTimeout: timeouts.dropdown, optionTimeout: timeouts.dropdown }
-  );
+  await selectDropdownOption(modalForm, '#isRepeating ~ .e-input-group-icon.e-ddl-icon', data.isRepeating, {
+    openTimeout: timeouts.dropdown,
+    optionTimeout: timeouts.dropdown,
+    direct: true
+  });
 
-  // Textarea: specialInstructions
-  await modalForm.locator('textarea#specialInstructions').fill(data.specialInstructions || '');
-  console.log(`✍️ Filled Special Instructions: ${data.specialInstructions || ''}`);
+  await selectDropdownOption(modalForm, '#entityName ~ .e-input-group-icon.e-ddl-icon', data.entityName, {
+    openTimeout: timeouts.dropdown,
+    optionTimeout: timeouts.dropdown,
+    direct: true
+  });
 
-  // Input: itemIdentifier
-  await modalForm.locator('input#itemIdentifier').fill(data.itemIdentifier || '');
-  console.log(`✍️ Filled Item Identifier: ${data.itemIdentifier || ''}`);
+  await fillInput('textarea#specialInstructions', data.specialInstructions);
+  await fillInput('input#itemIdentifier', data.itemIdentifier);
+  await fillInput('input#batchSize', data.batchSize?.toString());
+  await fillInput('input#itemPatterns', data.itemPatterns);
 
-  // Input: batchSize (numeric input)
-  await modalForm.locator('input#batchSize').fill(data.batchSize?.toString() || '0');
-  console.log(`✍️ Filled Batch Size: ${data.batchSize || 0}`);
-
-  // Input: itemPatterns
-  await modalForm.locator('input#itemPatterns').fill(data.itemPatterns || '');
-  console.log(`✍️ Filled Item Patterns: ${data.itemPatterns || ''}`);
-
-  // Modal Save button (button at footer)
-  const saveButton = page.locator('.e-footer-content button.submit-button');
+  const saveButton = modalForm.locator('button:has-text("Save")');
   await saveButton.waitFor({ state: 'visible', timeout: timeouts.input });
   await saveButton.click();
-
   console.log('💾 Clicked Save button on modal form');
 }
 
