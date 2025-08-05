@@ -1,0 +1,3 @@
+run this command to install testcafe : npm install testcafe --save-dev
+
+to run the test :  npm run test:headed use this command on terminal. 
